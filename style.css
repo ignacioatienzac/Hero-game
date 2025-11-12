@@ -91,6 +91,14 @@ html, body {
     gap: 1rem;
 }
 
+.selection-subtitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 /* --- Botones --- */
 .btn {
     width: 100%;
@@ -104,12 +112,12 @@ html, body {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.btn-tense, .btn-type {
+.btn-tense, .btn-type, .btn-difficulty {
     background-color: #e5e7eb; /* gray-200 */
     color: #1f2937; /* gray-800 */
 }
 
-.btn-tense:hover, .btn-type:hover {
+.btn-tense:hover, .btn-type:hover, .btn-difficulty:hover {
     background-color: #3b82f6; /* blue-500 */
     color: white;
 }

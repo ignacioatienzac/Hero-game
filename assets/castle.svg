@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9c4bd"/>
+      <stop offset="1" stop-color="#a59f95"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5d37a"/>
+      <stop offset="1" stop-color="#e2a72a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="none"/>
+  <g transform="translate(32 32)">
+    <g>
+      <rect x="120" y="160" width="208" height="224" rx="8" fill="url(#wall)"/>
+      <rect x="88" y="208" width="48" height="176" fill="url(#wall)"/>
+      <rect x="312" y="208" width="48" height="176" fill="url(#wall)"/>
+      <rect x="40" y="232" width="48" height="152" fill="url(#wall)"/>
+      <rect x="360" y="232" width="48" height="152" fill="url(#wall)"/>
+      <rect x="152" y="112" width="144" height="72" fill="url(#wall)"/>
+      <rect x="184" y="64" width="80" height="72" fill="url(#wall)"/>
+      <rect x="204" y="24" width="40" height="64" fill="url(#wall)"/>
+      <polygon points="224,0 224,24 304,24 304,0" fill="#b33a3a"/>
+      <polygon points="72,160 112,88 152,160" fill="url(#roof)"/>
+      <polygon points="352,160 392,88 432,160" fill="url(#roof)"/>
+      <polygon points="176,64 224,0 272,64" fill="#807a72"/>
+      <rect x="200" y="304" width="48" height="80" fill="#7a4a2d"/>
+      <rect x="200" y="304" width="48" height="20" fill="#63361f"/>
+      <rect x="120" y="208" width="40" height="56" rx="6" fill="#7b818d"/>
+      <rect x="288" y="208" width="40" height="56" rx="6" fill="#7b818d"/>
+      <rect x="200" y="192" width="48" height="72" rx="8" fill="#7b818d"/>
+      <rect x="88" y="264" width="48" height="32" fill="#7b818d"/>
+      <rect x="312" y="264" width="48" height="32" fill="#7b818d"/>
+      <rect x="40" y="296" width="48" height="24" fill="#7b818d"/>
+      <rect x="360" y="296" width="48" height="24" fill="#7b818d"/>
+      <rect x="72" y="352" width="48" height="32" fill="#7b818d"/>
+      <rect x="352" y="352" width="48" height="32" fill="#7b818d"/>
+    </g>
+  </g>
+</svg>
