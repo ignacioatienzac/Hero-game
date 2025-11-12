@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="none"/>
+  <g fill="none" fill-rule="evenodd">
+    <path d="M20 10 L24 4 L26 12 Z" fill="#5d4331"/>
+    <path d="M44 10 L40 4 L38 12 Z" fill="#5d4331"/>
+    <rect x="20" y="8" width="24" height="18" rx="6" fill="#7a5942"/>
+    <rect x="24" y="14" width="6" height="6" fill="#f5dc62"/>
+    <rect x="34" y="14" width="6" height="6" fill="#f5dc62"/>
+    <rect x="26" y="20" width="12" height="4" fill="#4b3325"/>
+    <rect x="18" y="24" width="28" height="22" rx="6" fill="#6a4b38"/>
+    <rect x="26" y="28" width="12" height="10" fill="#9c7a5e"/>
+    <rect x="16" y="28" width="6" height="18" fill="#7a5942"/>
+    <rect x="42" y="28" width="6" height="18" fill="#7a5942"/>
+    <rect x="14" y="42" width="8" height="6" fill="#e5e5e5"/>
+    <rect x="42" y="42" width="8" height="6" fill="#e5e5e5"/>
+    <rect x="24" y="44" width="8" height="16" fill="#5d4331"/>
+    <rect x="34" y="44" width="8" height="16" fill="#5d4331"/>
+    <rect x="22" y="58" width="10" height="4" fill="#ececec"/>
+    <rect x="34" y="58" width="10" height="4" fill="#ececec"/>
+    <path d="M44 32 C50 32 54 36 54 40 C54 44 50 46 46 46 L44 46 Z" fill="#7a5942"/>
+  </g>
+</svg>
