@@ -63,10 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3. FUNCIÓN PRINCIPAL DE INICIO ---
 
     const spritePaths = {
-        heroe: 'assets/hero.svg',
-        zombie: 'assets/zombie.svg',
-        werewolf: 'assets/werewolf.svg',
-        castillo: 'assets/castle.svg'
+        heroe: 'images/hero.svg',
+        zombie: 'images/zombie.svg',
+        werewolf: 'images/werewolf.svg',
+        castillo: 'images/castle.svg'
     };
 
     const sprites = {};
