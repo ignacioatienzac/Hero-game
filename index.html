@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defensa del Héroe: El Poder de los Verbos</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuente Inter por defecto de Tailwind */
+        html, body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden; /* Evitar scroll */
+            background-color: #1a202c; /* Fondo oscuro */
+        }
+        
+        /* Contenedor principal de la aplicación */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Contenedor del juego principal (canvas) */
+        #game-container {
+            flex: 3; /* Ocupa 3/4 de la altura */
+            background-color: #87CEEB; /* Color cielo */
+            position: relative;
+            overflow: hidden;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Contenedor del mini-juego de verbos */
+        #minigame-container {
+            flex: 1; /* Ocupa 1/4 de la altura */
+            background-color: #ffffff;
+            border-top: 4px solid #4a5568;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Estilo para el mensaje de feedback (correcto/incorrecto) */
+        #minigame-message {
+            height: 1.5rem; /* Altura fija para evitar saltos de layout */
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .text-success { color: #28a745; }
+        .text-error { color: #dc3545; }
+
+        /* Estilos para el overlay de Game Over */
+        #game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-900">
+
+    <!-- Contenedor principal de la aplicación -->
+    <div id="app-container">
+
+        <!-- 1. ZONA DEL JUEGO (ARRIBA) -->
+        <div id="game-container">
+            <canvas id="game-canvas"></canvas>
+            <!-- Overlay de Game Over -->
+            <div id="game-over-overlay">
+                <h1 class="text-6xl font-bold mb-4">¡FIN DEL JUEGO!</h1>
+                <p class="text-2xl mb-8">Los monstruos han superado tus defensas.</p>
+                <p class="text-xl">Puntuación Final: <span id="final-score">0</span></p>
+                <button id="restart-button" class="mt-8 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition-colors">
+                    Jugar de Nuevo
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. ZONA DEL MINI-JUEGO (ABAJO) -->
+        <div id="minigame-container" class="bg-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">¡El Poder de los Verbos!</h2>
+            <p class="text-lg">Resuelve la conjugación para aumentar tu poder de ataque.</p>
+            
+            <!-- Pregunta del mini-juego -->
+            <div id="minigame-prompt" class="flex flex-wrap justify-center items-center gap-2 text-xl">
+                <span>Conjugar</span>
+                <span id="verb" class="font-bold text-blue-600">...</span>
+                <span>en</span>
+                <span id="tense" class="font-bold text-purple-600">...</span>
+                <span>para</span>
+                <span id="pronoun" class="font-bold text-green-600">...</span>
+                <span>:</span>
+            </div>
+
+            <!-- Respuesta del jugador -->
+            <div class="flex gap-2">
+                <input type="text" id="answer-input" class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tu respuesta...">
+                <button id="submit-answer" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors">
+                    Comprobar
+                </button>
+            </div>
+
+            <!-- Mensaje de feedback -->
+            <div id="minigame-message" class="text-lg"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- LÓGICA DEL JUEGO ---
+
+        // --- 1. CONFIGURACIÓN INICIAL ---
+        window.addEventListener('load', () => {
+            const canvas = document.getElementById('game-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Contenedores del mini-juego
+            const verbEl = document.getElementById('verb');
+            const tenseEl = document.getElementById('tense');
+            const pronounEl = document.getElementById('pronoun');
+            const answerInput = document.getElementById('answer-input');
+            const submitButton = document.getElementById('submit-answer');
+            const messageEl = document.getElementById('minigame-message');
+
+            // Overlays de UI
+            const gameOverOverlay = document.getElementById('game-over-overlay');
+            const finalScoreEl = document.getElementById('final-score');
+            const restartButton = document.getElementById('restart-button');
+
+            // --- Base de datos de verbos (expandible) ---
+            const verbos = [
+                { verb: 'hablar', tense: 'presente', pronoun: 'yo', answer: 'hablo' },
+                { verb: 'hablar', tense: 'presente', pronoun: 'tú', answer: 'hablas' },
+                { verb: 'hablar', tense: 'presente', pronoun: 'él/ella', answer: 'habla' },
+                { verb: 'comer', tense: 'presente', pronoun: 'yo', answer: 'como' },
+                { verb: 'comer', tense: 'presente', pronoun: 'nosotros', answer: 'comemos' },
+                { verb: 'comer', tense: 'pasado', pronoun: 'tú', answer: 'comiste' },
+                { verb: 'vivir', tense: 'presente', pronoun: 'yo', answer: 'vivo' },
+                { verb: 'vivir', tense: 'futuro', pronoun: 'él/ella', answer: 'vivirá' },
+                { verb: 'vivir', tense: 'pasado', pronoun: 'nosotros', answer: 'vivimos' },
+                { verb: 'ser', tense: 'presente', pronoun: 'yo', answer: 'soy' },
+                { verb: 'ser', tense: 'presente', pronoun: 'tú', answer: 'eres' },
+                { verb: 'ser', tense: 'pasado', pronoun: 'él/ella', answer: 'fue' },
+                { verb: 'estar', tense: 'presente', pronoun: 'yo', answer: 'estoy' },
+                { verb: 'estar', tense: 'pasado', pronoun: 'yo', answer: 'estuve' },
+                { verb: 'tener', tense: 'presente', pronoun: 'tú', answer: 'tienes' },
+                { verb: 'tener', tense: 'futuro', pronoun: 'yo', answer: 'tendré' },
+            ];
+            let preguntaActual = {};
+
+            // --- Variables del estado del juego ---
+            let heroe;
+            let monstruos = [];
+            let proyectiles = [];
+            let vidas;
+            let puntuacion;
+            let poderAtaque;
+            let gameOver;
+            let ultimoSpawn;
+            let spawnRate; // en ms
+            
+            // Variables de dibujo
+            let alturaTerreno;
+
+            // --- 2. LÓGICA DEL MINI-JUEGO ---
+
+            function cargarPregunta() {
+                preguntaActual = verbos[Math.floor(Math.random() * verbos.length)];
+                verbEl.textContent = `"${preguntaActual.verb}"`;
+                tenseEl.textContent = preguntaActual.tense;
+                pronounEl.textContent = preguntaActual.pronoun;
+                answerInput.value = '';
+                messageEl.textContent = '';
+                answerInput.focus();
+            }
+
+            function comprobarRespuesta() {
+                const respuestaUsuario = answerInput.value.trim().toLowerCase();
+                if (respuestaUsuario === preguntaActual.answer) {
+                    // ¡Correcto! Aumentar poder
+                    poderAtaque++;
+                    messageEl.textContent = '¡CORRECTO! +1 Poder de Ataque';
+                    messageEl.className = 'text-lg text-success';
+                    cargarPregunta();
+                } else {
+                    // Incorrecto
+                    messageEl.textContent = 'Incorrecto. Inténtalo de nuevo.';
+                    messageEl.className = 'text-lg text-error';
+                }
+                // Limpiar mensaje después de 2 segundos
+                setTimeout(() => { 
+                    if (!gameOver) messageEl.textContent = ''; 
+                }, 2000);
+            }
+
+            // Event Listeners del mini-juego
+            submitButton.addEventListener('click', comprobarRespuesta);
+            answerInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    comprobarRespuesta();
+                }
+            });
+
+            // --- 3. LÓGICA DEL JUEGO PRINCIPAL ---
+
+            function inicializarJuego() {
+                // Ajustar tamaño del canvas
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+
+                // Resetear estado
+                alturaTerreno = canvas.height * 0.15; // 15% del canvas para el terreno
+                vidas = 10;
+                puntuacion = 0;
+                poderAtaque = 1;
+                gameOver = false;
+                ultimoSpawn = 0;
+                spawnRate = 3000; // 3 segundos
+
+                monstruos = [];
+                proyectiles = [];
+
+                // Crear al héroe
+                heroe = {
+                    x: 50,
+                    y: canvas.height - alturaTerreno - 60, // 60 de altura
+                    width: 40,
+                    height: 60,
+                    color: '#007BFF', // Azul
+                    ultimoDisparo: 0,
+                    cadencia: 1000 // 1 disparo por segundo
+                };
+
+                // Ocultar overlay y cargar primera pregunta
+                gameOverOverlay.style.display = 'none';
+                cargarPregunta();
+                
+                // Iniciar el bucle del juego
+                requestAnimationFrame(gameLoop);
+            }
+
+            function gameLoop(timestamp) {
+                if (gameOver) return;
+
+                actualizar(timestamp);
+                dibujar();
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            // --- 4. ACTUALIZACIÓN (Update) ---
+
+            function actualizar(timestamp) {
+                // 1. Spawneo de monstruos
+                if (timestamp - ultimoSpawn > spawnRate) {
+                    ultimoSpawn = timestamp;
+                    spawnRate = Math.max(500, spawnRate * 0.99); // Acelera el spawn rate
+                    crearMonstruo();
+                }
+
+                // 2. Disparo automático del héroe
+                if (timestamp - heroe.ultimoDisparo > heroe.cadencia) {
+                    heroe.ultimoDisparo = timestamp;
+                    crearProyectil();
+                }
+
+                // 3. Mover proyectiles
+                for (let i = proyectiles.length - 1; i >= 0; i--) {
+                    let p = proyectiles[i];
+                    p.x += p.velocidad;
+                    // Eliminar si sale de la pantalla
+                    if (p.x > canvas.width) {
+                        proyectiles.splice(i, 1);
+                    }
+                }
+
+                // 4. Mover monstruos
+                for (let i = monstruos.length - 1; i >= 0; i--) {
+                    let m = monstruos[i];
+                    m.x -= m.velocidad;
+
+                    // Monstruo llega al héroe
+                    if (m.x < heroe.x + heroe.width) {
+                        monstruos.splice(i, 1);
+                        vidas--;
+                        if (vidas <= 0) {
+                            terminarJuego();
+                        }
+                    }
+                }
+
+                // 5. Comprobar colisiones (Proyectil vs Monstruo)
+                for (let i = proyectiles.length - 1; i >= 0; i--) {
+                    let p = proyectiles[i];
+                    for (let j = monstruos.length - 1; j >= 0; j--) {
+                        let m = monstruos[j];
+                        
+                        // Simple colisión AABB
+                        if (p.x < m.x + m.width &&
+                            p.x + p.width > m.x &&
+                            p.y < m.y + m.height &&
+                            p.y + p.height > m.y)
+                        {
+                            // Colisión detectada
+                            proyectiles.splice(i, 1); // Eliminar proyectil
+                            m.vida -= p.poder;
+
+                            if (m.vida <= 0) {
+                                monstruos.splice(j, 1); // Eliminar monstruo
+                                puntuacion += m.puntos;
+                            }
+                            break; // El proyectil solo puede golpear a un monstruo
+                        }
+                    }
+                }
+            }
+            
+            function crearProyectil() {
+                proyectiles.push({
+                    x: heroe.x + heroe.width,
+                    y: heroe.y + heroe.height / 2 - 5, // Centrado
+                    width: 15,
+                    height: 10,
+                    color: `rgba(255, 200, 0, ${0.5 + poderAtaque * 0.1})`, // Más poder = más brillante
+                    velocidad: 8,
+                    poder: poderAtaque
+                });
+            }
+
+            function crearMonstruo() {
+                const tipo = Math.random();
+                let monstruo = {
+                    x: canvas.width,
+                    width: 40,
+                    height: 60,
+                    puntos: 0
+                };
+
+                if (tipo < 0.6) { // 60% Zombie (lento, poca vida)
+                    monstruo.color = '#28a745'; // Verde
+                    monstruo.velocidad = 0.5 + Math.random() * 0.5; // Lento
+                    monstruo.vida = 2 + Math.floor(poderAtaque / 2); // Escala con poder
+                    monstruo.puntos = 10;
+                } else { // 40% Hombre Lobo (rápido, más vida)
+                    monstruo.color = '#6c757d'; // Gris
+                    monstruo.velocidad = 1 + Math.random() * 1; // Rápido
+                    monstruo.vida = 4 + Math.floor(poderAtaque / 1); // Escala más
+                    monstruo.puntos = 25;
+                }
+                
+                monstruo.y = canvas.height - alturaTerreno - monstruo.height;
+                monstruos.push(monstruo);
+            }
+
+            // --- 5. DIBUJADO (Draw) ---
+
+            function dibujar() {
+                // Limpiar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Dibujar terreno (césped)
+                ctx.fillStyle = '#556B2F'; // Verde oscuro
+                ctx.fillRect(0, canvas.height - alturaTerreno, canvas.width, alturaTerreno);
+                // Dibujar tierra
+                ctx.fillStyle = '#8B4513'; // Marrón
+                ctx.fillRect(0, canvas.height - alturaTerreno + 20, canvas.width, alturaTerreno - 20);
+
+                // Dibujar héroe
+                ctx.fillStyle = heroe.color;
+                ctx.fillRect(heroe.x, heroe.y, heroe.width, heroe.height);
+                // "Cañón" del héroe
+                ctx.fillStyle = '#333';
+                ctx.fillRect(heroe.x + heroe.width - 10, heroe.y + 20, 20, 10);
+
+                // Dibujar proyectiles
+                proyectiles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.width, p.height);
+                    ctx.strokeStyle = '#FFFF00'; // Borde amarillo
+                    ctx.strokeRect(p.x, p.y, p.width, p.height);
+                });
+
+                // Dibujar monstruos
+                monstruos.forEach(m => {
+                    ctx.fillStyle = m.color;
+                    ctx.fillRect(m.x, m.y, m.width, m.height);
+                    
+                    // Barra de vida
+                    ctx.fillStyle = '#dc3545'; // Rojo (fondo)
+                    ctx.fillRect(m.x, m.y - 10, m.width, 5);
+                    let vidaMax = (m.color === '#28a745') ? (2 + Math.floor(poderAtaque / 2)) : (4 + Math.floor(poderAtaque / 1));
+                    ctx.fillStyle = '#28a745'; // Verde (vida)
+                    ctx.fillRect(m.x, m.y - 10, m.width * (m.vida / vidaMax), 5);
+                });
+
+                // Dibujar UI (Vidas, Puntuación, Poder)
+                ctx.fillStyle = '#000000';
+                ctx.font = '24px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(`❤️ Vidas: ${vidas}`, 20, 40);
+                ctx.textAlign = 'right';
+                ctx.fillText(`Puntuación: ${puntuacion}`, canvas.width - 20, 40);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#FFD700'; // Dorado
+                ctx.fillText(`🔥 Poder de Ataque: ${poderAtaque}`, canvas.width / 2, 40);
+            }
+
+            // --- 6. FIN DEL JUEGO ---
+            
+            function terminarJuego() {
+                gameOver = true;
+                finalScoreEl.textContent = puntuacion;
+                gameOverOverlay.style.display = 'flex';
+                messageEl.textContent = '¡El juego ha terminado!';
+                messageEl.className = 'text-lg text-error';
+            }
+
+            // Reiniciar el juego
+            restartButton.addEventListener('click', inicializarJuego);
+
+            // --- INICIAR EL JUEGO ---
+            inicializarJuego();
+        });
+    </script>
+</body>
+</html>
