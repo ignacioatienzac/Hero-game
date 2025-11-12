@@ -54,9 +54,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. FUNCIÓN PRINCIPAL DE INICIO ---
 
+    const spritePaths = {
+        heroe: 'assets/hero.svg',
+        zombie: 'assets/zombie.svg',
+        werewolf: 'assets/werewolf.svg'
+    };
+
+    const sprites = {};
+
     async function main() {
         // Carga los verbos del archivo JSON
         await cargarVerbos();
+        // Carga los sprites del juego
+        await cargarSprites();
         // Configura los listeners de la pantalla de selección
         setupSelectionListeners();
     }
@@ -73,6 +83,28 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error al cargar el archivo de verbos:", error);
             selectionErrorEl.textContent = "Error al cargar los verbos. Refresca la página.";
         }
+    }
+
+    async function cargarSprites() {
+        const entradas = Object.entries(spritePaths);
+        await Promise.all(entradas.map(([clave, ruta]) => cargarSprite(ruta)
+            .then(img => {
+                sprites[clave] = img;
+            })
+            .catch(error => {
+                console.error(error);
+                sprites[clave] = null;
+            })
+        ));
+    }
+
+    function cargarSprite(ruta) {
+        return new Promise((resolve, reject) => {
+            const imagen = new Image();
+            imagen.onload = () => resolve(imagen);
+            imagen.onerror = () => reject(new Error(`No se pudo cargar la imagen ${ruta}`));
+            imagen.src = ruta;
+        });
     }
 
     // --- 4. LÓGICA DE SELECCIÓN ---
@@ -197,12 +229,16 @@ document.addEventListener('DOMContentLoaded', () => {
         proyectiles = [];
 
         // Crear al héroe
+        const heroeSprite = sprites.heroe;
+        const heroeAncho = 48;
+        const heroeAlto = 64;
+
         heroe = {
             x: 50,
-            y: canvas.height - alturaTerreno - 60, // 60 de altura
-            width: 40,
-            height: 60,
-            color: '#007BFF', // Azul
+            y: canvas.height - alturaTerreno - heroeAlto,
+            width: heroeAncho,
+            height: heroeAlto,
+            sprite: heroeSprite,
             ultimoDisparo: 0,
             cadencia: 1000 // 1 disparo por segundo
         };
@@ -317,8 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = Math.random();
         let monstruo = {
             x: canvas.width,
-            width: 40,
-            height: 60,
+            width: 48,
+            height: 64,
             puntos: 0
         };
 
@@ -332,14 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
             monstruo.vida = vidaBaseZombie;
             monstruo.vidaMax = vidaBaseZombie;
             monstruo.puntos = 10;
+            monstruo.sprite = sprites.zombie;
         } else { // 40% Hombre Lobo (rápido, más vida)
             monstruo.color = '#6c757d'; // Gris
             monstruo.velocidad = 1 + Math.random() * 1; // Rápido
             monstruo.vida = vidaBaseLobo;
             monstruo.vidaMax = vidaBaseLobo;
             monstruo.puntos = 25;
+            monstruo.sprite = sprites.werewolf;
         }
-        
+
         monstruo.y = canvas.height - alturaTerreno - monstruo.height;
         monstruos.push(monstruo);
     }
@@ -358,11 +396,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillRect(0, canvas.height - alturaTerreno + 20, canvas.width, alturaTerreno - 20);
 
         // Dibujar héroe
-        ctx.fillStyle = heroe.color;
-        ctx.fillRect(heroe.x, heroe.y, heroe.width, heroe.height);
-        // "Cañón" del héroe
-        ctx.fillStyle = '#333';
-        ctx.fillRect(heroe.x + heroe.width - 10, heroe.y + 20, 20, 10);
+        if (heroe.sprite) {
+            ctx.drawImage(heroe.sprite, heroe.x, heroe.y, heroe.width, heroe.height);
+        } else {
+            ctx.fillStyle = '#007BFF';
+            ctx.fillRect(heroe.x, heroe.y, heroe.width, heroe.height);
+        }
 
         // Dibujar proyectiles
         proyectiles.forEach(p => {
@@ -374,8 +413,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Dibujar monstruos
         monstruos.forEach(m => {
-            ctx.fillStyle = m.color;
-            ctx.fillRect(m.x, m.y, m.width, m.height);
+            if (m.sprite) {
+                ctx.drawImage(m.sprite, m.x, m.y, m.width, m.height);
+            } else {
+                ctx.fillStyle = m.color;
+                ctx.fillRect(m.x, m.y, m.width, m.height);
+            }
             
             // Barra de vida
             ctx.fillStyle = '#dc3545'; // Rojo (fondo)
