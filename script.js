@@ -63,13 +63,101 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3. FUNCIÓN PRINCIPAL DE INICIO ---
 
     const spritePaths = {
-        heroe: 'images/hero.svg',
-        zombie: 'images/zombie.svg',
-        werewolf: 'images/werewolf.svg',
-        castillo: 'images/castle.svg'
+        heroe: 'images/Heroe.png',
+        castillo: 'images/Castillo.png'
     };
 
-    const sprites = {};
+    const enemyDefinitions = {
+        enemigo1: {
+            id: 'enemigo1',
+            name: 'Enemigo 1',
+            spritePath: 'images/Enemigo 1.png',
+            baseHealth: 2,
+            speedRange: { min: 0.45, max: 0.65 },
+            points: 10
+        },
+        enemigo2: {
+            id: 'enemigo2',
+            name: 'Enemigo 2',
+            spritePath: 'images/Enemigo 2.png',
+            baseHealth: 4,
+            speedRange: { min: 0.65, max: 0.85 },
+            points: 20
+        },
+        enemigo3: {
+            id: 'enemigo3',
+            name: 'Enemigo 3',
+            spritePath: 'images/Enemigo 3.png',
+            baseHealth: 6,
+            speedRange: { min: 0.5, max: 0.7 },
+            points: 25
+        },
+        enemigo4: {
+            id: 'enemigo4',
+            name: 'Enemigo 4',
+            spritePath: 'images/Enemigo 4.png',
+            baseHealth: 8,
+            speedRange: { min: 0.9, max: 1.1 },
+            points: 40
+        },
+        enemigo5: {
+            id: 'enemigo5',
+            name: 'Enemigo 5',
+            spritePath: 'images/Enemigo 5.png',
+            baseHealth: 10,
+            speedRange: { min: 1.6, max: 2.0 },
+            points: 45
+        },
+        enemigo6: {
+            id: 'enemigo6',
+            name: 'Enemigo 6',
+            spritePath: 'images/Enemigo 6.png',
+            baseHealth: 15,
+            speedRange: { min: 1.3, max: 1.6 },
+            points: 60
+        }
+    };
+
+    const sprites = {
+        heroe: null,
+        castillo: null,
+        enemigos: {}
+    };
+
+    let enemyProgressionState = [];
+    let unlockedEnemyIds = [];
+    let enemyKillCounts = {};
+
+    function removeEnemyFromUnlocked(enemyId) {
+        unlockedEnemyIds = unlockedEnemyIds.filter(id => id !== enemyId);
+    }
+
+    const enemyProgressionRules = {
+        facil: [
+            { id: 'enemigo1' },
+            { id: 'enemigo2', requires: { id: 'enemigo1', kills: 6 } },
+            { id: 'enemigo3', requires: { id: 'enemigo2', kills: 6 } },
+            { id: 'enemigo4', requires: { id: 'enemigo3', kills: 8 } }
+        ],
+        intermedio: [
+            { id: 'enemigo1' },
+            { id: 'enemigo2', requires: { id: 'enemigo1', kills: 6 } },
+            { id: 'enemigo3', requires: { id: 'enemigo2', kills: 6 } },
+            {
+                id: 'enemigo4',
+                requires: { id: 'enemigo3', kills: 8 },
+                onUnlock: () => removeEnemyFromUnlocked('enemigo1')
+            },
+            { id: 'enemigo5', requires: { id: 'enemigo4', kills: 8 } }
+        ],
+        dificil: [
+            { id: 'enemigo2' },
+            { id: 'enemigo3', requires: { id: 'enemigo2', kills: 6 } },
+            { id: 'enemigo4', requires: { id: 'enemigo3', kills: 6 } },
+            { id: 'enemigo5', requires: { id: 'enemigo4', kills: 8 } },
+            { id: 'enemigo6', requires: { id: 'enemigo5', kills: 10 } }
+        ]
+    };
 
     const difficultySettings = {
         facil: {
@@ -134,16 +222,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function cargarSprites() {
-        const entradas = Object.entries(spritePaths);
-        await Promise.all(entradas.map(([clave, ruta]) => cargarSprite(ruta)
-            .then(img => {
-                sprites[clave] = img;
-            })
-            .catch(error => {
-                console.error(error);
-                sprites[clave] = null;
-            })
-        ));
+        const entradas = Object.entries(spritePaths).map(([clave, ruta]) =>
+            cargarSprite(ruta)
+                .then(img => {
+                    sprites[clave] = img;
+                })
+                .catch(error => {
+                    console.error(error);
+                    sprites[clave] = null;
+                })
+        );
+
+        const entradasEnemigos = Object.values(enemyDefinitions).map(definicion =>
+            cargarSprite(definicion.spritePath)
+                .then(img => {
+                    sprites.enemigos[definicion.id] = img;
+                })
+                .catch(error => {
+                    console.error(error);
+                    sprites.enemigos[definicion.id] = null;
+                })
+        );
+
+        await Promise.all([...entradas, ...entradasEnemigos]);
     }
 
     function cargarSprite(ruta) {
@@ -306,6 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
         monstruos = [];
         proyectiles = [];
 
+        inicializarProgresionEnemigos();
+
         // Crear castillo y héroe
         const heroeSprite = sprites.heroe;
         const heroeAncho = 48;
@@ -431,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (m.vida <= 0) {
                         monstruos.splice(j, 1); // Eliminar monstruo
+                        registrarMuerteMonstruo(m);
                         puntuacion += m.puntos;
                         if (objetivoPuntuacion && puntuacion >= objetivoPuntuacion) {
                             finalizarJuego('victoria');
@@ -461,15 +565,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function crearMonstruo() {
-        const tipo = Math.random();
-        let monstruo = {
-            x: canvas.width,
-            width: 48,
-            height: 64,
-            puntos: 0
-        };
+        if (!unlockedEnemyIds.length) {
+            intentarDesbloquearEnemigos();
+        }
 
-        // Configuración según dificultad
+        if (!unlockedEnemyIds.length) {
+            return;
+        }
+
+        const enemyId = unlockedEnemyIds[Math.floor(Math.random() * unlockedEnemyIds.length)];
+        const definicion = enemyDefinitions[enemyId];
+        if (!definicion) {
+            return;
+        }
+
         const enemyConfig = dificultadActual ? dificultadActual.enemy : {};
         let healthMultiplier = enemyConfig.healthMultiplier ?? 1;
         let speedMultiplier = enemyConfig.speedMultiplier ?? 1;
@@ -483,28 +592,83 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Escalar la vida máxima según el poder de ataque y dificultad
-        const vidaBaseZombie = Math.max(1, Math.round((2 + Math.floor(poderAtaque / 2)) * healthMultiplier));
-        const vidaBaseLobo = Math.max(1, Math.round((4 + Math.floor(poderAtaque)) * healthMultiplier));
+        const velocidadBase = definicion.speedRange.min + Math.random() * (definicion.speedRange.max - definicion.speedRange.min);
+        const velocidad = velocidadBase * speedMultiplier;
+        const vida = Math.max(1, Math.round(definicion.baseHealth * healthMultiplier));
 
-        if (tipo < 0.6) { // 60% Zombie (lento, poca vida)
-            monstruo.color = '#28a745'; // Verde
-            monstruo.velocidad = (0.5 + Math.random() * 0.5) * speedMultiplier; // Lento
-            monstruo.vida = vidaBaseZombie;
-            monstruo.vidaMax = vidaBaseZombie;
-            monstruo.puntos = 10;
-            monstruo.sprite = sprites.zombie;
-        } else { // 40% Hombre Lobo (rápido, más vida)
-            monstruo.color = '#6c757d'; // Gris
-            monstruo.velocidad = (1 + Math.random() * 1) * speedMultiplier; // Rápido
-            monstruo.vida = vidaBaseLobo;
-            monstruo.vidaMax = vidaBaseLobo;
-            monstruo.puntos = 25;
-            monstruo.sprite = sprites.werewolf;
-        }
+        const monstruo = {
+            x: canvas.width,
+            width: 48,
+            height: 64,
+            puntos: definicion.points,
+            velocidad,
+            vida,
+            vidaMax: vida,
+            sprite: sprites.enemigos[enemyId] || null,
+            color: '#6c757d',
+            typeId: enemyId
+        };
 
         monstruo.y = canvas.height - alturaTerreno - monstruo.height;
         monstruos.push(monstruo);
+    }
+
+    function registrarMuerteMonstruo(monstruo) {
+        if (!monstruo || !monstruo.typeId) {
+            return;
+        }
+
+        enemyKillCounts[monstruo.typeId] = (enemyKillCounts[monstruo.typeId] || 0) + 1;
+        intentarDesbloquearEnemigos();
+    }
+
+    function inicializarProgresionEnemigos() {
+        enemyKillCounts = {};
+        unlockedEnemyIds = [];
+
+        const reglas = enemyProgressionRules[selectedDifficulty] || [];
+        enemyProgressionState = reglas.map(regla => ({
+            id: regla.id,
+            requires: regla.requires || null,
+            unlocked: !regla.requires,
+            onUnlock: regla.onUnlock || null
+        }));
+
+        enemyProgressionState.forEach(stage => {
+            enemyKillCounts[stage.id] = 0;
+            if (stage.unlocked) {
+                unlockedEnemyIds.push(stage.id);
+            }
+        });
+
+        if (!unlockedEnemyIds.length && enemyProgressionState.length) {
+            enemyProgressionState[0].unlocked = true;
+            unlockedEnemyIds.push(enemyProgressionState[0].id);
+        }
+    }
+
+    function intentarDesbloquearEnemigos() {
+        enemyProgressionState.forEach(stage => {
+            if (stage.unlocked) {
+                return;
+            }
+
+            if (stage.requires) {
+                const kills = enemyKillCounts[stage.requires.id] || 0;
+                if (kills >= stage.requires.kills) {
+                    stage.unlocked = true;
+                    unlockedEnemyIds.push(stage.id);
+                    if (typeof stage.onUnlock === 'function') {
+                        stage.onUnlock();
+                    }
+                }
+            } else {
+                stage.unlocked = true;
+                unlockedEnemyIds.push(stage.id);
+            }
+        });
+
+        unlockedEnemyIds = [...new Set(unlockedEnemyIds)];
     }
 
     // --- 8. DIBUJADO (Draw) ---
