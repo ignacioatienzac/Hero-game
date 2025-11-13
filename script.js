@@ -69,6 +69,154 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const PODER_ATAQUE_MINIMO = 1;
+    const MAX_VISUAL_POWER = 30;
+    const POWER_STAGE_INTERVAL = 5;
+
+    const projectileVisualStyles = [
+        {
+            width: 16,
+            height: 10,
+            gradientStops: [
+                [0, '#facc15'],
+                [1, '#f97316']
+            ],
+            borderColor: '#fde68a',
+            shadowColor: 'rgba(250, 204, 21, 0.45)',
+            shadowBlur: 8,
+            trailColor: 'rgba(249, 115, 22, 0.35)'
+        },
+        {
+            width: 18,
+            height: 12,
+            gradientStops: [
+                [0, '#fbbf24'],
+                [0.5, '#fb923c'],
+                [1, '#ea580c']
+            ],
+            borderColor: '#fde047',
+            shadowColor: 'rgba(251, 191, 36, 0.5)',
+            shadowBlur: 10,
+            trailColor: 'rgba(251, 146, 60, 0.4)'
+        },
+        {
+            width: 20,
+            height: 12,
+            gradientStops: [
+                [0, '#fdba74'],
+                [0.5, '#f97316'],
+                [1, '#ea580c']
+            ],
+            borderColor: '#f97316',
+            shadowColor: 'rgba(251, 146, 60, 0.55)',
+            shadowBlur: 12,
+            trailColor: 'rgba(234, 88, 12, 0.45)'
+        },
+        {
+            width: 22,
+            height: 14,
+            gradientStops: [
+                [0, '#fef08a'],
+                [0.4, '#fbbf24'],
+                [1, '#ea580c']
+            ],
+            borderColor: '#facc15',
+            shadowColor: 'rgba(250, 204, 21, 0.6)',
+            shadowBlur: 14,
+            trailColor: 'rgba(251, 191, 36, 0.5)'
+        },
+        {
+            width: 24,
+            height: 16,
+            gradientStops: [
+                [0, '#fef3c7'],
+                [0.3, '#facc15'],
+                [0.7, '#f97316'],
+                [1, '#ea580c']
+            ],
+            borderColor: '#f59e0b',
+            shadowColor: 'rgba(252, 211, 77, 0.7)',
+            shadowBlur: 16,
+            trailColor: 'rgba(253, 230, 138, 0.5)'
+        },
+        {
+            width: 26,
+            height: 18,
+            gradientStops: [
+                [0, '#fff7ed'],
+                [0.25, '#fde68a'],
+                [0.6, '#facc15'],
+                [1, '#f97316']
+            ],
+            borderColor: '#fde68a',
+            shadowColor: 'rgba(253, 224, 71, 0.75)',
+            shadowBlur: 18,
+            trailColor: 'rgba(255, 247, 237, 0.55)'
+        }
+    ];
+
+    const heroAuraStyles = [
+        {
+            innerColor: 'rgba(250, 204, 21, 0.45)',
+            outerColor: 'rgba(249, 115, 22, 0.15)',
+            alpha: 0.6,
+            radiusMultiplierX: 0.7,
+            radiusMultiplierY: 1.1
+        },
+        {
+            innerColor: 'rgba(250, 204, 21, 0.55)',
+            outerColor: 'rgba(249, 115, 22, 0.2)',
+            alpha: 0.65,
+            radiusMultiplierX: 0.75,
+            radiusMultiplierY: 1.2
+        },
+        {
+            innerColor: 'rgba(253, 224, 71, 0.6)',
+            outerColor: 'rgba(249, 115, 22, 0.25)',
+            alpha: 0.7,
+            radiusMultiplierX: 0.8,
+            radiusMultiplierY: 1.25
+        },
+        {
+            innerColor: 'rgba(253, 230, 138, 0.65)',
+            outerColor: 'rgba(249, 115, 22, 0.3)',
+            alpha: 0.75,
+            radiusMultiplierX: 0.9,
+            radiusMultiplierY: 1.3
+        },
+        {
+            innerColor: 'rgba(254, 249, 195, 0.7)',
+            outerColor: 'rgba(249, 115, 22, 0.35)',
+            alpha: 0.8,
+            radiusMultiplierX: 1,
+            radiusMultiplierY: 1.35
+        },
+        {
+            innerColor: 'rgba(255, 247, 237, 0.75)',
+            outerColor: 'rgba(255, 159, 64, 0.45)',
+            alpha: 0.85,
+            radiusMultiplierX: 1.1,
+            radiusMultiplierY: 1.4
+        }
+    ];
+
+    function obtenerEtapaVisual(poder) {
+        const poderNormalizado = Math.max(PODER_ATAQUE_MINIMO, Math.min(MAX_VISUAL_POWER, poder));
+        return Math.min(
+            projectileVisualStyles.length - 1,
+            Math.floor((poderNormalizado - 1) / POWER_STAGE_INTERVAL)
+        );
+    }
+
+    function obtenerEstiloAtaque(poder) {
+        const etapa = obtenerEtapaVisual(poder);
+        const estilo = projectileVisualStyles[etapa] || projectileVisualStyles[0];
+        return { ...estilo, etapa };
+    }
+
+    function obtenerEstiloAura(poder) {
+        const etapa = obtenerEtapaVisual(poder);
+        return heroAuraStyles[etapa] || heroAuraStyles[heroAuraStyles.length - 1];
+    }
 
     const enemyDefinitions = {
         enemigo1: {
@@ -77,10 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
             spritePath: 'images/Enemigo 1.png',
             baseHealth: 5,
             healthByDifficulty: {
-                facil: 3,
+                facil: 5,
                 intermedio: 5
             },
-            speedRange: { min: 0.45, max: 0.6 },
+            speedRange: { min: 0.4, max: 0.55 },
             speedLabel: 'Lento',
             points: 10
         },
@@ -88,13 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo2',
             name: 'Enemigo 2',
             spritePath: 'images/Enemigo 2.png',
-            baseHealth: 7,
+            baseHealth: 8,
             healthByDifficulty: {
-                facil: 5,
-                intermedio: 7,
-                dificil: 8
+                facil: 8,
+                intermedio: 10,
+                dificil: 10
             },
-            speedRange: { min: 0.6, max: 0.8 },
+            speedRange: { min: 0.6, max: 0.75 },
             speedLabel: 'Medio-Lento',
             points: 20
         },
@@ -102,13 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo3',
             name: 'Enemigo 3',
             spritePath: 'images/Enemigo 3.png',
-            baseHealth: 11,
+            baseHealth: 12,
             healthByDifficulty: {
-                facil: 7,
-                intermedio: 11,
-                dificil: 12
+                facil: 12,
+                intermedio: 18,
+                dificil: 18
             },
-            speedRange: { min: 0.45, max: 0.65 },
+            speedRange: { min: 0.45, max: 0.6 },
             speedLabel: 'Lento',
             points: 25
         },
@@ -116,11 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo4',
             name: 'Enemigo 4',
             spritePath: 'images/Enemigo 4.png',
-            baseHealth: 13,
+            baseHealth: 18,
             healthByDifficulty: {
-                facil: 10,
-                intermedio: 13,
-                dificil: 15
+                facil: 18,
+                intermedio: 25,
+                dificil: 25
             },
             speedRange: { min: 0.9, max: 1.1 },
             speedLabel: 'Media',
@@ -130,12 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo5',
             name: 'Enemigo 5',
             spritePath: 'images/Enemigo 5.png',
-            baseHealth: 15,
+            baseHealth: 40,
             healthByDifficulty: {
-                intermedio: 15,
-                dificil: 18
+                intermedio: 40,
+                dificil: 40
             },
-            speedRange: { min: 1.6, max: 2.0 },
+            speedRange: { min: 1.8, max: 2.2 },
             speedLabel: 'Muy Rápido',
             points: 45
         },
@@ -143,11 +291,11 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo6',
             name: 'Enemigo 6',
             spritePath: 'images/Enemigo 6.png',
-            baseHealth: 25,
+            baseHealth: 65,
             healthByDifficulty: {
-                dificil: 25
+                dificil: 65
             },
-            speedRange: { min: 1.3, max: 1.6 },
+            speedRange: { min: 1.4, max: 1.7 },
             speedLabel: 'Rápido',
             points: 60
         }
@@ -400,14 +548,15 @@ document.addEventListener('DOMContentLoaded', () => {
             messageEl.textContent = '¡CORRECTO! +1 Poder de Ataque';
             messageEl.className = 'text-success';
             // Cargar la siguiente pregunta después de un breve retraso
-            setTimeout(cargarPregunta, 500); 
+            setTimeout(cargarPregunta, 500);
         } else {
             // Incorrecto
-            messageEl.textContent = 'Incorrecto. Inténtalo de nuevo.';
+            poderAtaque = Math.max(PODER_ATAQUE_MINIMO, poderAtaque - 1);
+            messageEl.textContent = 'Incorrecto. -1 Poder de Ataque. Inténtalo de nuevo.';
             messageEl.className = 'text-error';
             // Limpiar mensaje después de 2 segundos
-            setTimeout(() => { 
-                if (!gameOver) messageEl.textContent = ''; 
+            setTimeout(() => {
+                if (!gameOver) messageEl.textContent = '';
             }, 2000);
         }
     }
@@ -609,15 +758,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function crearProyectil() {
         const poderActual = Math.max(PODER_ATAQUE_MINIMO, poderAtaque);
+        const estiloVisual = obtenerEstiloAtaque(poderActual);
 
         proyectiles.push({
             x: heroe.x + heroe.width,
-            y: heroe.y + heroe.height / 2 - 5, // Centrado
-            width: 15,
-            height: 10,
-            color: `rgba(255, 200, 0, ${0.5 + poderActual * 0.1})`, // Más poder = más brillante
+            y: heroe.y + heroe.height / 2 - estiloVisual.height / 2, // Centrado
+            width: estiloVisual.width,
+            height: estiloVisual.height,
+            gradientStops: estiloVisual.gradientStops,
+            borderColor: estiloVisual.borderColor,
+            shadowColor: estiloVisual.shadowColor,
+            shadowBlur: estiloVisual.shadowBlur,
+            trailColor: estiloVisual.trailColor,
             velocidad: 8,
-            poder: poderActual
+            poder: poderActual,
+            visualStage: estiloVisual.etapa
         });
     }
 
@@ -767,6 +922,48 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.strokeRect(barX, barY, barWidth, barHeight);
     }
 
+    function dibujarAuraHeroe() {
+        if (!heroe) return;
+
+        const aura = obtenerEstiloAura(poderAtaque);
+        const centroX = heroe.x + heroe.width / 2;
+        const centroY = heroe.y + heroe.height / 2;
+        const radioX = heroe.width * aura.radiusMultiplierX;
+        const radioY = heroe.height * aura.radiusMultiplierY;
+
+        ctx.save();
+        const radioMaximo = Math.max(radioX, radioY);
+        const gradiente = ctx.createRadialGradient(
+            centroX,
+            centroY,
+            heroe.width * 0.2,
+            centroX,
+            centroY,
+            radioMaximo
+        );
+        gradiente.addColorStop(0, aura.innerColor);
+        gradiente.addColorStop(1, aura.outerColor);
+        ctx.globalAlpha = aura.alpha;
+        ctx.fillStyle = gradiente;
+        ctx.beginPath();
+        ctx.ellipse(centroX, centroY, radioX, radioY, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function dibujarResplandorHeroe() {
+        if (!heroe) return;
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineWidth = 2 + obtenerEtapaVisual(poderAtaque);
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
+        ctx.shadowColor = 'rgba(255, 223, 0, 0.5)';
+        ctx.shadowBlur = 6 + obtenerEtapaVisual(poderAtaque) * 2;
+        ctx.strokeRect(heroe.x - 3, heroe.y - 3, heroe.width + 6, heroe.height + 6);
+        ctx.restore();
+    }
+
     function dibujar() {
         // Limpiar canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -781,6 +978,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Dibujar castillo detrás del héroe
         dibujarCastillo();
 
+        // Aura del héroe (detrás del sprite)
+        dibujarAuraHeroe();
+
         // Dibujar héroe
         if (heroe.sprite) {
             ctx.drawImage(heroe.sprite, heroe.x, heroe.y, heroe.width, heroe.height);
@@ -789,12 +989,57 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillRect(heroe.x, heroe.y, heroe.width, heroe.height);
         }
 
+        // Resplandor frontal del héroe
+        dibujarResplandorHeroe();
+
         // Dibujar proyectiles
         proyectiles.forEach(p => {
-            ctx.fillStyle = p.color;
+            ctx.save();
+
+            if (p.trailColor) {
+                ctx.globalAlpha = 0.7;
+                ctx.fillStyle = p.trailColor;
+                ctx.beginPath();
+                ctx.ellipse(
+                    p.x - p.width * 0.6,
+                    p.y + p.height / 2,
+                    Math.max(4, p.width * 0.55),
+                    Math.max(3, p.height * 0.8),
+                    0,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            if (p.shadowBlur) {
+                ctx.shadowColor = p.shadowColor || 'rgba(255, 215, 0, 0.5)';
+                ctx.shadowBlur = p.shadowBlur;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            let fillStyle = p.borderColor || '#FFD700';
+            if (p.gradientStops && p.gradientStops.length >= 2) {
+                const gradient = ctx.createLinearGradient(p.x, p.y, p.x + p.width, p.y + p.height);
+                p.gradientStops.forEach(stop => {
+                    const [offset, color] = stop;
+                    gradient.addColorStop(offset, color);
+                });
+                fillStyle = gradient;
+            }
+
+            ctx.fillStyle = fillStyle;
             ctx.fillRect(p.x, p.y, p.width, p.height);
-            ctx.strokeStyle = '#FFFF00'; // Borde amarillo
-            ctx.strokeRect(p.x, p.y, p.width, p.height);
+
+            if (p.borderColor) {
+                ctx.strokeStyle = p.borderColor;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(p.x, p.y, p.width, p.height);
+            }
+
+            ctx.restore();
         });
 
         // Dibujar monstruos
