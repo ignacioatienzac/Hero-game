@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let vidas;
     let puntuacion;
     let poderAtaque;
+    let poderAtaqueMaximo;
     let gameOver;
     let ultimoSpawn;
     let spawnRate; // en ms
@@ -66,6 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         heroe: 'images/Heroe.png',
         castillo: 'images/Castillo.png'
     };
+
+    const PODER_ATAQUE_MINIMO = 1;
 
     const enemyDefinitions = {
         enemigo1: {
@@ -387,6 +390,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (respuestaUsuario === preguntaActual.answer) {
             // ¡Correcto! Aumentar poder
             poderAtaque++;
+            if (poderAtaque < PODER_ATAQUE_MINIMO) {
+                poderAtaque = PODER_ATAQUE_MINIMO;
+            }
+            if (poderAtaqueMaximo === undefined) {
+                poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
+            }
+            poderAtaqueMaximo = Math.max(poderAtaqueMaximo, poderAtaque);
             messageEl.textContent = '¡CORRECTO! +1 Poder de Ataque';
             messageEl.className = 'text-success';
             // Cargar la siguiente pregunta después de un breve retraso
@@ -427,7 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         vidas = dificultadActual.castleLives;
         puntuacion = 0;
-        poderAtaque = 1;
+        poderAtaque = PODER_ATAQUE_MINIMO;
+        poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
         gameOver = false;
         ultimoSpawn = 0;
         spawnRate = dificultadActual.spawnRate;
@@ -501,6 +512,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 7. ACTUALIZACIÓN (Update) ---
 
     function actualizar(timestamp) {
+        if (poderAtaqueMaximo === undefined || poderAtaqueMaximo < PODER_ATAQUE_MINIMO) {
+            poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
+        }
+
+        const poderSegunHistorial = Math.max(PODER_ATAQUE_MINIMO, poderAtaqueMaximo);
+
+        if (poderAtaque < poderSegunHistorial) {
+            poderAtaque = poderSegunHistorial;
+        }
+
+        poderAtaqueMaximo = Math.max(poderAtaqueMaximo, poderAtaque);
+
         // 1. Spawneo de monstruos
         if (timestamp - ultimoSpawn > spawnRate) {
             ultimoSpawn = timestamp;
@@ -585,14 +608,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function crearProyectil() {
+        const poderActual = Math.max(PODER_ATAQUE_MINIMO, poderAtaque);
+
         proyectiles.push({
             x: heroe.x + heroe.width,
             y: heroe.y + heroe.height / 2 - 5, // Centrado
             width: 15,
             height: 10,
-            color: `rgba(255, 200, 0, ${0.5 + poderAtaque * 0.1})`, // Más poder = más brillante
+            color: `rgba(255, 200, 0, ${0.5 + poderActual * 0.1})`, // Más poder = más brillante
             velocidad: 8,
-            poder: poderAtaque
+            poder: poderActual
         });
     }
 
