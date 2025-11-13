@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let vidas;
     let puntuacion;
     let poderAtaque;
+    let poderAtaqueMaximo;
     let gameOver;
     let ultimoSpawn;
     let spawnRate; // en ms
@@ -67,53 +68,87 @@ document.addEventListener('DOMContentLoaded', () => {
         castillo: 'images/Castillo.png'
     };
 
+    const PODER_ATAQUE_MINIMO = 1;
+
     const enemyDefinitions = {
         enemigo1: {
             id: 'enemigo1',
             name: 'Enemigo 1',
             spritePath: 'images/Enemigo 1.png',
-            baseHealth: 2,
-            speedRange: { min: 0.45, max: 0.65 },
+            baseHealth: 5,
+            healthByDifficulty: {
+                facil: 5,
+                intermedio: 5
+            },
+            speedRange: { min: 0.45, max: 0.6 },
+            speedLabel: 'Lento',
             points: 10
         },
         enemigo2: {
             id: 'enemigo2',
             name: 'Enemigo 2',
             spritePath: 'images/Enemigo 2.png',
-            baseHealth: 4,
-            speedRange: { min: 0.65, max: 0.85 },
+            baseHealth: 10,
+            healthByDifficulty: {
+                facil: 8,
+                intermedio: 10,
+                dificil: 10
+            },
+            speedRange: { min: 0.6, max: 0.8 },
+            speedLabel: 'Medio-Lento',
             points: 20
         },
         enemigo3: {
             id: 'enemigo3',
             name: 'Enemigo 3',
             spritePath: 'images/Enemigo 3.png',
-            baseHealth: 6,
-            speedRange: { min: 0.5, max: 0.7 },
+            baseHealth: 18,
+            healthByDifficulty: {
+                facil: 12,
+                intermedio: 18,
+                dificil: 18
+            },
+            speedRange: { min: 0.45, max: 0.65 },
+            speedLabel: 'Lento',
             points: 25
         },
         enemigo4: {
             id: 'enemigo4',
             name: 'Enemigo 4',
             spritePath: 'images/Enemigo 4.png',
-            baseHealth: 8,
+            baseHealth: 25,
+            healthByDifficulty: {
+                facil: 18,
+                intermedio: 25,
+                dificil: 25
+            },
             speedRange: { min: 0.9, max: 1.1 },
+            speedLabel: 'Media',
             points: 40
         },
         enemigo5: {
             id: 'enemigo5',
             name: 'Enemigo 5',
             spritePath: 'images/Enemigo 5.png',
-            baseHealth: 10,
+            baseHealth: 40,
+            healthByDifficulty: {
+                intermedio: 40,
+                dificil: 40
+            },
             speedRange: { min: 1.6, max: 2.0 },
+            speedLabel: 'Muy Rápido',
             points: 45
         },
         enemigo6: {
             id: 'enemigo6',
             name: 'Enemigo 6',
             spritePath: 'images/Enemigo 6.png',
-            baseHealth: 15,
+            baseHealth: 65,
+            healthByDifficulty: {
+                dificil: 65
+            },
             speedRange: { min: 1.3, max: 1.6 },
+            speedLabel: 'Rápido',
             points: 60
         }
     };
@@ -167,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spawnRate: 3500,
             minSpawnRate: 1200,
             enemy: {
-                healthMultiplier: 0.75,
+                healthMultiplier: 1,
                 speedMultiplier: 0.85
             }
         },
@@ -192,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spawnRate: 2600,
             minSpawnRate: 450,
             enemy: {
-                healthMultiplier: 1.35,
+                healthMultiplier: 1,
                 speedMultiplier: 1.25
             }
         }
@@ -355,6 +390,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (respuestaUsuario === preguntaActual.answer) {
             // ¡Correcto! Aumentar poder
             poderAtaque++;
+            if (poderAtaque < PODER_ATAQUE_MINIMO) {
+                poderAtaque = PODER_ATAQUE_MINIMO;
+            }
+            if (poderAtaqueMaximo === undefined) {
+                poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
+            }
+            poderAtaqueMaximo = Math.max(poderAtaqueMaximo, poderAtaque);
             messageEl.textContent = '¡CORRECTO! +1 Poder de Ataque';
             messageEl.className = 'text-success';
             // Cargar la siguiente pregunta después de un breve retraso
@@ -395,7 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         vidas = dificultadActual.castleLives;
         puntuacion = 0;
-        poderAtaque = 1;
+        poderAtaque = PODER_ATAQUE_MINIMO;
+        poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
         gameOver = false;
         ultimoSpawn = 0;
         spawnRate = dificultadActual.spawnRate;
@@ -469,6 +512,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 7. ACTUALIZACIÓN (Update) ---
 
     function actualizar(timestamp) {
+        if (poderAtaqueMaximo === undefined || poderAtaqueMaximo < PODER_ATAQUE_MINIMO) {
+            poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
+        }
+
+        const poderSegunHistorial = Math.max(PODER_ATAQUE_MINIMO, poderAtaqueMaximo);
+
+        if (poderAtaque < poderSegunHistorial) {
+            poderAtaque = poderSegunHistorial;
+        }
+
+        poderAtaqueMaximo = Math.max(poderAtaqueMaximo, poderAtaque);
+
         // 1. Spawneo de monstruos
         if (timestamp - ultimoSpawn > spawnRate) {
             ultimoSpawn = timestamp;
@@ -553,14 +608,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function crearProyectil() {
+        const poderActual = Math.max(PODER_ATAQUE_MINIMO, poderAtaque);
+
         proyectiles.push({
             x: heroe.x + heroe.width,
             y: heroe.y + heroe.height / 2 - 5, // Centrado
             width: 15,
             height: 10,
-            color: `rgba(255, 200, 0, ${0.5 + poderAtaque * 0.1})`, // Más poder = más brillante
+            color: `rgba(255, 200, 0, ${0.5 + poderActual * 0.1})`, // Más poder = más brillante
             velocidad: 8,
-            poder: poderAtaque
+            poder: poderActual
         });
     }
 
@@ -594,7 +651,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const velocidadBase = definicion.speedRange.min + Math.random() * (definicion.speedRange.max - definicion.speedRange.min);
         const velocidad = velocidadBase * speedMultiplier;
-        const vida = Math.max(1, Math.round(definicion.baseHealth * healthMultiplier));
+
+        const baseHealth = (
+            definicion.healthByDifficulty && selectedDifficulty
+                ? definicion.healthByDifficulty[selectedDifficulty]
+                : undefined
+        ) ?? definicion.baseHealth ?? 1;
+
+        const vida = Math.max(1, Math.round(baseHealth * healthMultiplier));
 
         const monstruo = {
             x: canvas.width,
