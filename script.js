@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spritePath: 'images/Enemigo 1.png',
             baseHealth: 5,
             healthByDifficulty: {
-                facil: 5,
+                facil: 3,
                 intermedio: 5
             },
             speedRange: { min: 0.45, max: 0.6 },
@@ -85,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo2',
             name: 'Enemigo 2',
             spritePath: 'images/Enemigo 2.png',
-            baseHealth: 10,
+            baseHealth: 7,
             healthByDifficulty: {
-                facil: 8,
-                intermedio: 10,
-                dificil: 10
+                facil: 5,
+                intermedio: 7,
+                dificil: 8
             },
             speedRange: { min: 0.6, max: 0.8 },
             speedLabel: 'Medio-Lento',
@@ -99,11 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo3',
             name: 'Enemigo 3',
             spritePath: 'images/Enemigo 3.png',
-            baseHealth: 18,
+            baseHealth: 11,
             healthByDifficulty: {
-                facil: 12,
-                intermedio: 18,
-                dificil: 18
+                facil: 7,
+                intermedio: 11,
+                dificil: 12
             },
             speedRange: { min: 0.45, max: 0.65 },
             speedLabel: 'Lento',
@@ -113,11 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo4',
             name: 'Enemigo 4',
             spritePath: 'images/Enemigo 4.png',
-            baseHealth: 25,
+            baseHealth: 13,
             healthByDifficulty: {
-                facil: 18,
-                intermedio: 25,
-                dificil: 25
+                facil: 10,
+                intermedio: 13,
+                dificil: 15
             },
             speedRange: { min: 0.9, max: 1.1 },
             speedLabel: 'Media',
@@ -127,10 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo5',
             name: 'Enemigo 5',
             spritePath: 'images/Enemigo 5.png',
-            baseHealth: 40,
+            baseHealth: 15,
             healthByDifficulty: {
-                intermedio: 40,
-                dificil: 40
+                intermedio: 15,
+                dificil: 18
             },
             speedRange: { min: 1.6, max: 2.0 },
             speedLabel: 'Muy Rápido',
@@ -140,9 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'enemigo6',
             name: 'Enemigo 6',
             spritePath: 'images/Enemigo 6.png',
-            baseHealth: 65,
+            baseHealth: 25,
             healthByDifficulty: {
-                dificil: 65
+                dificil: 25
             },
             speedRange: { min: 1.3, max: 1.6 },
             speedLabel: 'Rápido',
