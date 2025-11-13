@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const answerInput = document.getElementById('answer-input');
     const submitButton = document.getElementById('submit-answer');
     const messageEl = document.getElementById('minigame-message');
+    const writeModeContainer = document.getElementById('write-mode-container');
+    const choiceModeContainer = document.getElementById('choice-mode-container');
+    const choiceGrid = document.getElementById('choice-grid');
+    const choiceVerbEl = document.getElementById('choice-verb');
+    const choicePronounEl = document.getElementById('choice-pronoun');
 
     // Overlays de UI
     const selectionOverlay = document.getElementById('selection-overlay');
@@ -29,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const typeButtons = document.querySelectorAll('.btn-type');
     const difficultySelectionDiv = document.getElementById('difficulty-selection');
     const difficultyButtons = document.querySelectorAll('.btn-difficulty');
+    const modeSelectionDiv = document.getElementById('mode-selection');
+    const modeButtons = document.querySelectorAll('.btn-mode');
     const startButton = document.getElementById('start-game-button');
     const selectionErrorEl = document.getElementById('selection-error');
     const gameOverTitleEl = document.querySelector('.game-over-title');
@@ -43,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let verbos = []; // Lista filtrada para la partida actual
     let preguntaActual = {};
     let selectedDifficulty = null;
+    let selectedMode = null;
 
     // Variables del juego principal
     let heroe;
@@ -60,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let castillo;
     let objetivoPuntuacion;
     let dificultadActual;
+    let choiceCells = [];
 
     // --- 3. FUNCIÓN PRINCIPAL DE INICIO ---
 
@@ -71,6 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const PODER_ATAQUE_MINIMO = 1;
     const MAX_VISUAL_POWER = 30;
     const POWER_STAGE_INTERVAL = 5;
+    const CHOICE_MODE_VERBS = ['hablar', 'comer', 'vivir'];
+    const CHOICE_MODE_GRID_SIZES = {
+        facil: 6,
+        intermedio: 8,
+        dificil: 10
+    };
+    const CHOICE_MODE_COLUMNS = {
+        facil: 3,
+        intermedio: 4,
+        dificil: 5
+    };
 
     const projectileVisualStyles = [
         {
@@ -442,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. LÓGICA DE SELECCIÓN ---
 
     function actualizarEstadoBotonInicio() {
-        startButton.disabled = !(selectedVerbType && selectedDifficulty);
+        startButton.disabled = !(selectedVerbType && selectedDifficulty && selectedMode);
     }
 
     function setupSelectionListeners() {
@@ -466,8 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Resaltar botón
                 typeButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 button.classList.add('btn-selected');
-                // Mostrar dificultad
+                selectedDifficulty = null;
+                selectedMode = null;
+                difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 difficultySelectionDiv.classList.remove('hidden');
+                modeSelectionDiv.classList.add('hidden');
+                // Mostrar dificultad
                 selectionErrorEl.textContent = ''; // Limpiar error
                 actualizarEstadoBotonInicio();
             });
@@ -478,6 +503,19 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => {
                 selectedDifficulty = button.dataset.difficulty;
                 difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                button.classList.add('btn-selected');
+                selectedMode = null;
+                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                modeSelectionDiv.classList.remove('hidden');
+                selectionErrorEl.textContent = '';
+                actualizarEstadoBotonInicio();
+            });
+        });
+
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                selectedMode = button.dataset.mode;
+                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 button.classList.add('btn-selected');
                 selectionErrorEl.textContent = '';
                 actualizarEstadoBotonInicio();
@@ -490,6 +528,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectionErrorEl.textContent = 'Selecciona una dificultad para comenzar.';
                 return;
             }
+            if (!selectedMode) {
+                selectionErrorEl.textContent = 'Selecciona un modo de juego para comenzar.';
+                return;
+            }
             // 1. Filtrar la base de datos de verbos
             verbos = masterVerbos.filter(v => v.tense === selectedTense);
 
@@ -497,6 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 verbos = verbos.filter(v => v.regular === true);
             }
             // Si es 'regular-irregular', no se necesita más filtro
+
+            if (selectedMode === 'choice') {
+                verbos = verbos.filter(v => CHOICE_MODE_VERBS.includes(v.verb));
+            }
 
             // 2. Comprobar si hay verbos
             if (verbos.length === 0) {
@@ -517,47 +563,146 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 5. LÓGICA DEL MINI-JUEGO ---
 
     function cargarPregunta() {
+        if (selectedMode === 'choice') {
+            cargarPreguntaChoiceMode();
+        } else {
+            cargarPreguntaWriteMode();
+        }
+    }
+
+    function cargarPreguntaWriteMode() {
         // Selecciona un verbo aleatorio de la lista filtrada 'verbos'
+        if (!verbos.length) return;
         preguntaActual = verbos[Math.floor(Math.random() * verbos.length)];
-        
+
         verbEl.textContent = `"${preguntaActual.verb}"`;
         // Mostrar el nombre del tiempo verbal seleccionado por el usuario
-        tenseEl.textContent = selectedTense; 
+        tenseEl.textContent = selectedTense;
         pronounEl.textContent = preguntaActual.pronoun;
-        
+
         answerInput.value = '';
         messageEl.textContent = '';
         messageEl.className = '';
         answerInput.focus();
     }
 
+    function cargarPreguntaChoiceMode() {
+        if (!choiceCells.length) {
+            preguntaActual = {};
+            return;
+        }
+        const disponibles = choiceCells.filter(cell => cell.question);
+        if (!disponibles.length) {
+            preguntaActual = {};
+            return;
+        }
+        const celdaObjetivo = disponibles[Math.floor(Math.random() * disponibles.length)];
+        preguntaActual = { ...celdaObjetivo.question };
+
+        choiceVerbEl.textContent = preguntaActual.verb || '...';
+        choicePronounEl.textContent = preguntaActual.pronoun || '...';
+        messageEl.textContent = '';
+        messageEl.className = '';
+    }
+
+    function manejarRespuestaCorrecta() {
+        poderAtaque++;
+        if (poderAtaque < PODER_ATAQUE_MINIMO) {
+            poderAtaque = PODER_ATAQUE_MINIMO;
+        }
+        if (poderAtaqueMaximo === undefined) {
+            poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
+        }
+        poderAtaqueMaximo = Math.max(poderAtaqueMaximo, poderAtaque);
+        messageEl.textContent = '¡CORRECTO! +1 Poder de Ataque';
+        messageEl.className = 'text-success';
+    }
+
+    function manejarRespuestaIncorrecta() {
+        poderAtaque = Math.max(PODER_ATAQUE_MINIMO, poderAtaque - 1);
+        messageEl.textContent = 'Incorrecto. -1 Poder de Ataque. Inténtalo de nuevo.';
+        messageEl.className = 'text-error';
+        setTimeout(() => {
+            if (!gameOver) messageEl.textContent = '';
+        }, 2000);
+    }
+
+    function asignarConjugacionChoice(cellData) {
+        if (!cellData) return;
+        if (!verbos.length) {
+            cellData.question = null;
+            cellData.element.textContent = '...';
+            return;
+        }
+        const dato = verbos[Math.floor(Math.random() * verbos.length)];
+        cellData.question = { ...dato };
+        cellData.element.textContent = cellData.question.answer;
+    }
+
+    function manejarSeleccionChoice(cellData) {
+        if (gameOver || selectedMode !== 'choice') return;
+        if (!cellData || !cellData.question || !preguntaActual || !preguntaActual.answer) return;
+
+        if (
+            cellData.question.verb === preguntaActual.verb &&
+            cellData.question.answer === preguntaActual.answer
+        ) {
+            manejarRespuestaCorrecta();
+            setTimeout(() => {
+                asignarConjugacionChoice(cellData);
+                cargarPregunta();
+            }, 500);
+        } else {
+            manejarRespuestaIncorrecta();
+        }
+    }
+
     function comprobarRespuesta() {
-        if (gameOver) return; // No hacer nada si el juego terminó
+        if (gameOver || selectedMode !== 'write') return; // No hacer nada si el juego terminó
 
         const respuestaUsuario = answerInput.value.trim().toLowerCase();
         if (respuestaUsuario === preguntaActual.answer) {
-            // ¡Correcto! Aumentar poder
-            poderAtaque++;
-            if (poderAtaque < PODER_ATAQUE_MINIMO) {
-                poderAtaque = PODER_ATAQUE_MINIMO;
-            }
-            if (poderAtaqueMaximo === undefined) {
-                poderAtaqueMaximo = PODER_ATAQUE_MINIMO;
-            }
-            poderAtaqueMaximo = Math.max(poderAtaqueMaximo, poderAtaque);
-            messageEl.textContent = '¡CORRECTO! +1 Poder de Ataque';
-            messageEl.className = 'text-success';
+            manejarRespuestaCorrecta();
             // Cargar la siguiente pregunta después de un breve retraso
             setTimeout(cargarPregunta, 500);
         } else {
-            // Incorrecto
-            poderAtaque = Math.max(PODER_ATAQUE_MINIMO, poderAtaque - 1);
-            messageEl.textContent = 'Incorrecto. -1 Poder de Ataque. Inténtalo de nuevo.';
-            messageEl.className = 'text-error';
-            // Limpiar mensaje después de 2 segundos
-            setTimeout(() => {
-                if (!gameOver) messageEl.textContent = '';
-            }, 2000);
+            manejarRespuestaIncorrecta();
+        }
+    }
+
+    function configurarMinijuegoPorModo() {
+        if (selectedMode === 'choice') {
+            writeModeContainer.classList.add('hidden');
+            choiceModeContainer.classList.remove('hidden');
+            answerInput.blur();
+            choiceGrid.innerHTML = '';
+            choiceCells = [];
+            const totalCeldas = CHOICE_MODE_GRID_SIZES[selectedDifficulty] || 6;
+            const columnas = CHOICE_MODE_COLUMNS[selectedDifficulty] || Math.max(1, Math.floor(totalCeldas / 2));
+            choiceGrid.style.gridTemplateColumns = `repeat(${columnas}, minmax(0, 1fr))`;
+            choiceGrid.style.gridTemplateRows = 'repeat(2, auto)';
+            for (let i = 0; i < totalCeldas; i++) {
+                const celda = document.createElement('button');
+                celda.type = 'button';
+                celda.className = 'choice-cell';
+                const celdaData = { element: celda, question: null };
+                celda.addEventListener('click', () => manejarSeleccionChoice(celdaData));
+                choiceGrid.appendChild(celda);
+                choiceCells.push(celdaData);
+            }
+            choiceVerbEl.textContent = '...';
+            choicePronounEl.textContent = '...';
+            choiceCells.forEach(celdaData => asignarConjugacionChoice(celdaData));
+        } else {
+            writeModeContainer.classList.remove('hidden');
+            choiceModeContainer.classList.add('hidden');
+            choiceGrid.innerHTML = '';
+            choiceGrid.style.gridTemplateColumns = '';
+            choiceGrid.style.gridTemplateRows = '';
+            choiceCells = [];
+            answerInput.value = '';
+            choiceVerbEl.textContent = '...';
+            choicePronounEl.textContent = '...';
         }
     }
 
@@ -595,6 +740,8 @@ document.addEventListener('DOMContentLoaded', () => {
         castillo = null;
         messageEl.textContent = '';
         messageEl.className = '';
+
+        configurarMinijuegoPorModo();
 
         monstruos = [];
         proyectiles = [];
@@ -1114,6 +1261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedTense = null;
         selectedVerbType = null;
         selectedDifficulty = null;
+        selectedMode = null;
         dificultadActual = null;
         objetivoPuntuacion = 0;
         castillo = null;
@@ -1121,12 +1269,22 @@ document.addEventListener('DOMContentLoaded', () => {
         tenseButtons.forEach(btn => btn.classList.remove('btn-selected'));
         typeButtons.forEach(btn => btn.classList.remove('btn-selected'));
         difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+        modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
         difficultySelectionDiv.classList.add('hidden');
+        modeSelectionDiv.classList.add('hidden');
         startButton.disabled = true;
         actualizarEstadoBotonInicio();
         selectionErrorEl.textContent = '';
         messageEl.textContent = '';
         messageEl.className = '';
+        choiceGrid.innerHTML = '';
+        choiceGrid.style.gridTemplateColumns = '';
+        choiceGrid.style.gridTemplateRows = '';
+        choiceCells = [];
+        choiceVerbEl.textContent = '...';
+        choicePronounEl.textContent = '...';
+        writeModeContainer.classList.remove('hidden');
+        choiceModeContainer.classList.add('hidden');
 
         // Mostrar la pantalla de selección
         typeSelectionDiv.classList.add('hidden');

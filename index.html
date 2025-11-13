@@ -41,6 +41,14 @@
                     </div>
                 </div>
 
+                <div id="mode-selection" class="hidden">
+                    <h2 class="selection-subtitle">Choose mode</h2>
+                    <div class="selection-buttons">
+                        <button data-mode="choice" class="btn btn-mode">Choice Mode</button>
+                        <button data-mode="write" class="btn btn-mode">Write Mode</button>
+                    </div>
+                </div>
+
                 <button id="start-game-button" class="btn btn-start" disabled>
                     Start Game
                 </button>
@@ -72,24 +80,35 @@
         <div id="minigame-container">
             <h2 class="minigame-title">¡El Poder de los Verbos!</h2>
             <p>Resuelve la conjugación para aumentar tu poder de ataque.</p>
-            
-            <!-- Pregunta del mini-juego -->
-            <div id="minigame-prompt">
-                <span>Conjugar</span>
-                <span id="verb">...</span>
-                <span>en</span>
-                <span id="tense">...</span>
-                <span>para</span>
-                <span id="pronoun">...</span>
-                <span>:</span>
+
+            <div id="write-mode-container" class="minigame-mode">
+                <!-- Pregunta del mini-juego -->
+                <div id="minigame-prompt">
+                    <span>Conjugar</span>
+                    <span id="verb">...</span>
+                    <span>en</span>
+                    <span id="tense">...</span>
+                    <span>para</span>
+                    <span id="pronoun">...</span>
+                    <span>:</span>
+                </div>
+
+                <!-- Respuesta del jugador -->
+                <div class="answer-group">
+                    <input type="text" id="answer-input" placeholder="Tu respuesta...">
+                    <button id="submit-answer" class="btn btn-submit">
+                        Comprobar
+                    </button>
+                </div>
             </div>
 
-            <!-- Respuesta del jugador -->
-            <div class="answer-group">
-                <input type="text" id="answer-input" placeholder="Tu respuesta...">
-                <button id="submit-answer" class="btn btn-submit">
-                    Comprobar
-                </button>
+            <div id="choice-mode-container" class="minigame-mode hidden">
+                <div id="choice-grid" class="choice-grid"></div>
+                <div id="choice-prompt" class="choice-prompt">
+                    <span id="choice-verb">...</span>
+                    <span>+</span>
+                    <span id="choice-pronoun">...</span>
+                </div>
             </div>
 
             <!-- Mensaje de feedback -->
