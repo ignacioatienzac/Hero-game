@@ -143,10 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { tier: ATTACK_VISUAL_TIERS[ultimoIndice], index: ultimoIndice };
     }
 
-    function obtenerEtapaVisual(poder) {
-        return obtenerTierVisual(poder).index;
-    }
-
     function obtenerSpriteAura(poder) {
         const { tier } = obtenerTierVisual(poder);
         if (!tier.auraPath) {
@@ -180,6 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 width = maxWidth;
                 height = maxWidth / aspectRatio;
             }
+        }
+
+        if (tier.projectilePath === 'images/proyectil-5.png') {
+            width *= 1.2;
+            height *= 1.2;
+        } else if (tier.projectilePath === 'images/proyectil-6.png') {
+            width *= 1.35;
+            height *= 1.35;
         }
 
         return { sprite, width, height, etapa: index };
@@ -1074,19 +1078,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.restore();
     }
 
-    function dibujarResplandorHeroe() {
-        if (!heroe) return;
-
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.lineWidth = 2 + obtenerEtapaVisual(poderAtaque);
-        ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
-        ctx.shadowColor = 'rgba(255, 223, 0, 0.5)';
-        ctx.shadowBlur = 6 + obtenerEtapaVisual(poderAtaque) * 2;
-        ctx.strokeRect(heroe.x - 3, heroe.y - 3, heroe.width + 6, heroe.height + 6);
-        ctx.restore();
-    }
-
     function dibujar() {
         // Limpiar canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1111,9 +1102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillStyle = '#007BFF';
             ctx.fillRect(heroe.x, heroe.y, heroe.width, heroe.height);
         }
-
-        // Resplandor frontal del héroe
-        dibujarResplandorHeroe();
 
         // Dibujar proyectiles
         proyectiles.forEach(p => {
