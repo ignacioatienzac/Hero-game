@@ -388,6 +388,14 @@ html, body {
     margin-top: 2rem;
     padding: 0.75rem 1.5rem;
 }
+.btn-restart span {
+    display: block;
+    line-height: 1.25;
+    font-size: 1.125rem;
+}
+.btn-restart span:first-child {
+    font-weight: 600;
+}
 .btn-restart:hover {
     background-color: #1d4ed8; /* blue-700 */
 }

@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Variables de selección
     let selectedTense = null;
     let selectedVerbType = null;
+    let selectedTenseLabel = '';
     let masterVerbos = []; // Aquí se cargarán los verbos del JSON
     let verbos = []; // Lista filtrada para la partida actual
     let preguntaActual = {};
@@ -526,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tenseButtons.forEach(button => {
             button.addEventListener('click', () => {
                 selectedTense = button.dataset.tense;
+                selectedTenseLabel = button.dataset.label || button.textContent.trim();
                 // Resaltar botón
                 tenseButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 button.classList.add('btn-selected');
@@ -649,7 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         verbEl.textContent = `"${preguntaActual.verb}"`;
         // Mostrar el nombre del tiempo verbal seleccionado por el usuario
-        tenseEl.textContent = selectedTense;
+        tenseEl.textContent = selectedTenseLabel || selectedTense;
         pronounEl.textContent = preguntaActual.pronoun;
 
         answerInput.value = '';
@@ -1289,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Resetear la selección
         selectedTense = null;
         selectedVerbType = null;
+        selectedTenseLabel = '';
         selectedDifficulty = null;
         selectedMode = null;
         dificultadActual = null;
