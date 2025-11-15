@@ -82,12 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const CHOICE_MODE_GRID_SIZES = {
         facil: 6,
         intermedio: 8,
-        dificil: 10
+        dificil: 8
     };
     const CHOICE_MODE_COLUMNS = {
         facil: 3,
         intermedio: 4,
-        dificil: 5
+        dificil: 4
     };
 
     const ATTACK_VISUAL_TIERS = [
@@ -461,9 +461,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Resaltar botón
                 tenseButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 button.classList.add('btn-selected');
-                // Mostrar siguiente paso
-                tenseSelectionDiv.classList.add('hidden');
+                // Resetear selecciones dependientes y mostrar el siguiente paso
+                selectedVerbType = null;
+                selectedMode = null;
+                selectedDifficulty = null;
+                typeButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 typeSelectionDiv.classList.remove('hidden');
+                modeSelectionDiv.classList.add('hidden');
+                difficultySelectionDiv.classList.add('hidden');
+                selectionErrorEl.textContent = '';
+                actualizarEstadoBotonInicio();
             });
         });
 
@@ -474,14 +483,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Resaltar botón
                 typeButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 button.classList.add('btn-selected');
-                selectedDifficulty = null;
                 selectedMode = null;
-                difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                selectedDifficulty = null;
                 modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
-                difficultySelectionDiv.classList.remove('hidden');
-                modeSelectionDiv.classList.add('hidden');
-                // Mostrar dificultad
+                difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                modeSelectionDiv.classList.remove('hidden');
+                difficultySelectionDiv.classList.add('hidden');
                 selectionErrorEl.textContent = ''; // Limpiar error
+                actualizarEstadoBotonInicio();
+            });
+        });
+
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                selectedMode = button.dataset.mode;
+                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                button.classList.add('btn-selected');
+                selectedDifficulty = null;
+                difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+                difficultySelectionDiv.classList.remove('hidden');
+                selectionErrorEl.textContent = '';
                 actualizarEstadoBotonInicio();
             });
         });
@@ -491,19 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => {
                 selectedDifficulty = button.dataset.difficulty;
                 difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
-                button.classList.add('btn-selected');
-                selectedMode = null;
-                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
-                modeSelectionDiv.classList.remove('hidden');
-                selectionErrorEl.textContent = '';
-                actualizarEstadoBotonInicio();
-            });
-        });
-
-        modeButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                selectedMode = button.dataset.mode;
-                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 button.classList.add('btn-selected');
                 selectionErrorEl.textContent = '';
                 actualizarEstadoBotonInicio();
@@ -1214,6 +1222,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Mostrar la pantalla de selección
         typeSelectionDiv.classList.add('hidden');
+        modeSelectionDiv.classList.add('hidden');
+        difficultySelectionDiv.classList.add('hidden');
         tenseSelectionDiv.classList.remove('hidden');
         selectionOverlay.style.display = 'flex'; // Mostrar overlay
     });

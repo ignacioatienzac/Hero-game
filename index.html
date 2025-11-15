@@ -13,48 +13,50 @@
     <!-- PANTALLA DE SELECCIÓN -->
     <div id="selection-overlay" class="overlay">
         <div class="selection-box">
-            
-            <!-- Paso 1: Elegir Tiempo -->
-            <div id="tense-selection">
-                <h1 class="selection-title">Choose your tense</h1>
-                <div class="selection-buttons">
-                    <button data-tense="presente" class="btn btn-tense">Present Tense</button>
-                    <button data-tense="indefinido" class="btn btn-tense">Indefinite Tense (Pretérito)</button>
-                    <button data-tense="imperfecto" class="btn btn-tense">Imperfect Tense</button>
-                </div>
-            </div>
-
-            <!-- Paso 2: Elegir Tipo de Verbo -->
-            <div id="type-selection" class="hidden">
-                <h1 class="selection-title">Choose verb type</h1>
-                <div class="selection-buttons">
-                    <button data-type="regular" class="btn btn-type">Regular Verbs</button>
-                    <button data-type="regular-irregular" class="btn btn-type">Regular and Irregular Verbs</button>
-                </div>
-
-                <div id="difficulty-selection" class="hidden">
-                    <h2 class="selection-subtitle">Choose difficulty</h2>
+            <div class="selection-steps">
+                <!-- Paso 1: Elegir Tiempo -->
+                <div id="tense-selection" class="selection-panel">
+                    <h1 class="selection-title">Choose your tense</h1>
                     <div class="selection-buttons">
-                        <button data-difficulty="facil" class="btn btn-difficulty">Easy</button>
-                        <button data-difficulty="intermedio" class="btn btn-difficulty">Intermediate</button>
-                        <button data-difficulty="dificil" class="btn btn-difficulty">Hard</button>
+                        <button data-tense="presente" class="btn btn-tense">Present Tense</button>
+                        <button data-tense="indefinido" class="btn btn-tense">Indefinite Tense (Pretérito)</button>
+                        <button data-tense="imperfecto" class="btn btn-tense">Imperfect Tense</button>
                     </div>
                 </div>
 
-                <div id="mode-selection" class="hidden">
-                    <h2 class="selection-subtitle">Choose mode</h2>
+                <!-- Paso 2: Elegir Tipo de Verbo -->
+                <div id="type-selection" class="selection-panel hidden">
+                    <h1 class="selection-title">Choose verb type</h1>
+                    <div class="selection-buttons">
+                        <button data-type="regular" class="btn btn-type">Regular Verbs</button>
+                        <button data-type="regular-irregular" class="btn btn-type">Regular and Irregular Verbs</button>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Elegir Modo -->
+                <div id="mode-selection" class="selection-panel hidden">
+                    <h1 class="selection-title">Choose mode</h1>
                     <div class="selection-buttons">
                         <button data-mode="choice" class="btn btn-mode">Choice Mode</button>
                         <button data-mode="write" class="btn btn-mode">Write Mode</button>
                     </div>
                 </div>
 
-                <button id="start-game-button" class="btn btn-start" disabled>
-                    Start Game
-                </button>
-                <div id="selection-error" class="selection-error-message"></div>
+                <!-- Paso 4: Elegir Dificultad -->
+                <div id="difficulty-selection" class="selection-panel hidden">
+                    <h1 class="selection-title">Choose difficulty</h1>
+                    <div class="selection-buttons">
+                        <button data-difficulty="facil" class="btn btn-difficulty">Easy</button>
+                        <button data-difficulty="intermedio" class="btn btn-difficulty">Intermediate</button>
+                        <button data-difficulty="dificil" class="btn btn-difficulty">Hard</button>
+                    </div>
+                </div>
             </div>
 
+            <button id="start-game-button" class="btn btn-start" disabled>
+                Start Game
+            </button>
+            <div id="selection-error" class="selection-error-message"></div>
         </div>
     </div>
 
