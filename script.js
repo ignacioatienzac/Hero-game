@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalScoreEl = document.getElementById('final-score');
     const restartButton = document.getElementById('restart-button');
     const quickRestartButton = document.getElementById('quick-restart-button');
+    const quickRestartModal = document.getElementById('quick-restart-modal');
+    const quickRestartSameButton = document.getElementById('quick-restart-same');
+    const quickRestartDifferentButton = document.getElementById('quick-restart-different');
+    const quickRestartCancelButton = document.getElementById('quick-restart-cancel');
 
     // Elementos de la pantalla de selección
     const tenseSelectionDiv = document.getElementById('tense-selection');
@@ -75,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let objetivoPuntuacion;
     let dificultadActual;
     let choiceCells = [];
+    let lastFocusedElementBeforeModal = null;
 
     // --- 3. FUNCIÓN PRINCIPAL DE INICIO ---
 
@@ -1378,6 +1383,64 @@ document.addEventListener('DOMContentLoaded', () => {
         restablecerSeleccionInicial();
     });
 
+    function handleQuickRestartKeydown(event) {
+        if (!quickRestartModal || quickRestartModal.classList.contains('hidden')) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            cerrarModalReinicioRapido();
+            return;
+        }
+
+        if (event.key === 'Tab') {
+            const focusableElements = Array.from(quickRestartModal.querySelectorAll('button'));
+            if (!focusableElements.length) {
+                return;
+            }
+
+            const currentIndex = focusableElements.indexOf(document.activeElement);
+            if (event.shiftKey) {
+                if (currentIndex <= 0) {
+                    focusableElements[focusableElements.length - 1].focus();
+                    event.preventDefault();
+                }
+            } else {
+                if (currentIndex === focusableElements.length - 1) {
+                    focusableElements[0].focus();
+                    event.preventDefault();
+                }
+            }
+        }
+    }
+
+    function abrirModalReinicioRapido() {
+        if (!quickRestartModal) {
+            return;
+        }
+
+        lastFocusedElementBeforeModal = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        quickRestartModal.classList.remove('hidden');
+        const firstOption = quickRestartModal.querySelector('button');
+        if (firstOption) {
+            firstOption.focus();
+        }
+        document.addEventListener('keydown', handleQuickRestartKeydown);
+    }
+
+    function cerrarModalReinicioRapido() {
+        if (!quickRestartModal) {
+            return;
+        }
+
+        quickRestartModal.classList.add('hidden');
+        document.removeEventListener('keydown', handleQuickRestartKeydown);
+        if (lastFocusedElementBeforeModal && typeof lastFocusedElementBeforeModal.focus === 'function') {
+            lastFocusedElementBeforeModal.focus();
+        }
+    }
+
     if (quickRestartButton) {
         quickRestartButton.addEventListener('click', () => {
             if (!selectedMode || !selectedDifficulty || !selectedVerbType || !selectedTense) {
@@ -1385,14 +1448,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const repeatSameSettings = window.confirm(
-                '¿Quieres repetir con los mismos ajustes?\nDo you want to repeat with the same settings?'
-            );
+            abrirModalReinicioRapido();
+        });
+    }
 
-            if (repeatSameSettings) {
-                reiniciarPartidaConMismosAjustes();
-            } else {
-                restablecerSeleccionInicial();
+    if (quickRestartSameButton) {
+        quickRestartSameButton.addEventListener('click', () => {
+            cerrarModalReinicioRapido();
+            reiniciarPartidaConMismosAjustes();
+        });
+    }
+
+    if (quickRestartDifferentButton) {
+        quickRestartDifferentButton.addEventListener('click', () => {
+            cerrarModalReinicioRapido();
+            restablecerSeleccionInicial();
+        });
+    }
+
+    if (quickRestartCancelButton) {
+        quickRestartCancelButton.addEventListener('click', () => {
+            cerrarModalReinicioRapido();
+        });
+    }
+
+    if (quickRestartModal) {
+        quickRestartModal.addEventListener('click', (event) => {
+            if (event.target === quickRestartModal) {
+                cerrarModalReinicioRapido();
             }
         });
     }

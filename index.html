@@ -151,6 +151,26 @@
                 <span>start again</span>
             </button>
 
+            <div id="quick-restart-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quick-restart-title">
+                <div class="modal-content">
+                    <h2 id="quick-restart-title" class="modal-title">¿Qué quieres hacer?</h2>
+                    <div class="modal-options">
+                        <button id="quick-restart-same" class="modal-option" type="button">
+                            <span>Repetir con los mismos ajustes</span>
+                            <span>Repeat with the same settings</span>
+                        </button>
+                        <button id="quick-restart-different" class="modal-option" type="button">
+                            <span>Repetir con ajustes diferentes</span>
+                            <span>Repeat with different settings</span>
+                        </button>
+                        <button id="quick-restart-cancel" class="modal-option" type="button">
+                            <span>Cancelar</span>
+                            <span>Cancel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Mensaje de feedback -->
             <div id="minigame-message"></div>
         </div>
