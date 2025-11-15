@@ -529,6 +529,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function obtenerVerbosFiltrados() {
+        if (!selectedTense) {
+            return [];
+        }
+
+        let filtrados = masterVerbos.filter(v => v.tense === selectedTense);
+
+        if (selectedVerbType === 'regular') {
+            filtrados = filtrados.filter(v => v.regular === true);
+        } else if (selectedVerbType === 'irregular') {
+            filtrados = filtrados.filter(v => v.regular === false);
+        }
+
+        if (selectedMode === 'choice') {
+            filtrados = filtrados.filter(v => CHOICE_MODE_VERBS.includes(v.verb));
+        }
+
+        return filtrados;
+    }
+
     function setupSelectionListeners() {
         // Listeners para botones de TIEMPO
         tenseButtons.forEach(button => {
@@ -612,18 +632,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             // 1. Filtrar la base de datos de verbos
-            verbos = masterVerbos.filter(v => v.tense === selectedTense);
-
-            if (selectedVerbType === 'regular') {
-                verbos = verbos.filter(v => v.regular === true);
-            } else if (selectedVerbType === 'irregular') {
-                verbos = verbos.filter(v => v.regular === false);
-            }
-            // Si es 'regular-irregular', no se necesita más filtro
-
-            if (selectedMode === 'choice') {
-                verbos = verbos.filter(v => CHOICE_MODE_VERBS.includes(v.verb));
-            }
+            const verbosFiltrados = obtenerVerbosFiltrados();
+            verbos = verbosFiltrados;
 
             // 2. Comprobar si hay verbos
             if (verbos.length === 0) {
@@ -1299,6 +1309,14 @@ document.addEventListener('DOMContentLoaded', () => {
             gameLoopId = null;
         }
 
+        const verbosFiltrados = obtenerVerbosFiltrados();
+        if (!verbosFiltrados.length) {
+            restablecerSeleccionInicial();
+            selectionErrorEl.textContent = 'No hay verbos para esta combinación.';
+            return;
+        }
+
+        verbos = verbosFiltrados;
         gameOver = false;
         messageEl.textContent = '';
         messageEl.className = '';
