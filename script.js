@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageEl = document.getElementById('minigame-message');
     const writeModeContainer = document.getElementById('write-mode-container');
     const choiceModeContainer = document.getElementById('choice-mode-container');
+    const writeModeInstructions = document.querySelector('.write-mode-instructions');
     const choiceGrid = document.getElementById('choice-grid');
     const choiceVerbEl = document.getElementById('choice-verb');
     const choicePronounEl = document.getElementById('choice-pronoun');
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameOverOverlay = document.getElementById('game-over-overlay');
     const finalScoreEl = document.getElementById('final-score');
     const restartButton = document.getElementById('restart-button');
+    const quickRestartButton = document.getElementById('quick-restart-button');
 
     // Elementos de la pantalla de selección
     const tenseSelectionDiv = document.getElementById('tense-selection');
@@ -748,6 +750,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedMode === 'choice') {
             writeModeContainer.classList.add('hidden');
             choiceModeContainer.classList.remove('hidden');
+            if (writeModeInstructions) {
+                writeModeInstructions.classList.add('hidden');
+            }
             answerInput.blur();
             choiceGrid.innerHTML = '';
             choiceCells = [];
@@ -770,6 +775,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             writeModeContainer.classList.remove('hidden');
             choiceModeContainer.classList.add('hidden');
+            if (writeModeInstructions) {
+                writeModeInstructions.classList.remove('hidden');
+            }
             choiceGrid.innerHTML = '';
             choiceGrid.style.gridTemplateColumns = '';
             choiceGrid.style.gridTemplateRows = '';
@@ -1280,15 +1288,56 @@ document.addEventListener('DOMContentLoaded', () => {
         messageEl.className = resultado === 'victoria' ? 'text-success' : 'text-error';
     }
 
-    // Reiniciar el juego
-    restartButton.addEventListener('click', () => {
-        // Ocultar overlays y el juego
+    function reiniciarPartidaConMismosAjustes() {
+        if (gameLoopId) {
+            cancelAnimationFrame(gameLoopId);
+            gameLoopId = null;
+        }
+
+        gameOver = false;
+        messageEl.textContent = '';
+        messageEl.className = '';
         gameOverOverlay.classList.add('hidden');
         gameOverOverlay.style.display = 'none';
+        selectionOverlay.style.display = 'none';
+        appContainer.classList.remove('hidden');
+        appContainer.style.display = 'flex';
+
+        inicializarJuego();
+    }
+
+    function restablecerSeleccionInicial() {
+        if (gameLoopId) {
+            cancelAnimationFrame(gameLoopId);
+            gameLoopId = null;
+        }
+
+        gameOver = false;
+        monstruos = [];
+        proyectiles = [];
+        choiceCells = [];
+        verbos = [];
+        preguntaActual = {};
+        messageEl.textContent = '';
+        messageEl.className = '';
+        answerInput.value = '';
+        choiceGrid.innerHTML = '';
+        choiceGrid.style.gridTemplateColumns = '';
+        choiceGrid.style.gridTemplateRows = '';
+        choiceVerbEl.textContent = '...';
+        choicePronounEl.textContent = '...';
+        writeModeContainer.classList.remove('hidden');
+        choiceModeContainer.classList.add('hidden');
+        if (writeModeInstructions) {
+            writeModeInstructions.classList.remove('hidden');
+        }
+
         appContainer.classList.add('hidden');
         appContainer.style.display = 'none';
+        gameOverOverlay.classList.add('hidden');
+        gameOverOverlay.style.display = 'none';
+        selectionOverlay.style.display = 'flex';
 
-        // Resetear la selección
         selectedTense = null;
         selectedVerbType = null;
         selectedTenseLabel = '';
@@ -1298,12 +1347,17 @@ document.addEventListener('DOMContentLoaded', () => {
         objetivoPuntuacion = 0;
         castillo = null;
         vidas = 0;
+
         tenseButtons.forEach(btn => btn.classList.remove('btn-selected'));
         typeButtons.forEach(btn => btn.classList.remove('btn-selected'));
         difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
         modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
-        difficultySelectionDiv.classList.add('hidden');
+
+        typeSelectionDiv.classList.add('hidden');
         modeSelectionDiv.classList.add('hidden');
+        difficultySelectionDiv.classList.add('hidden');
+        tenseSelectionDiv.classList.remove('hidden');
+
         startButton.disabled = true;
         if (choiceModeButton) {
             choiceModeButton.disabled = false;
@@ -1315,26 +1369,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modeRestrictionMessage) {
             modeRestrictionMessage.textContent = '';
         }
-        actualizarEstadoBotonInicio();
         selectionErrorEl.textContent = '';
-        messageEl.textContent = '';
-        messageEl.className = '';
-        choiceGrid.innerHTML = '';
-        choiceGrid.style.gridTemplateColumns = '';
-        choiceGrid.style.gridTemplateRows = '';
-        choiceCells = [];
-        choiceVerbEl.textContent = '...';
-        choicePronounEl.textContent = '...';
-        writeModeContainer.classList.remove('hidden');
-        choiceModeContainer.classList.add('hidden');
+        actualizarEstadoBotonInicio();
+    }
 
-        // Mostrar la pantalla de selección
-        typeSelectionDiv.classList.add('hidden');
-        modeSelectionDiv.classList.add('hidden');
-        difficultySelectionDiv.classList.add('hidden');
-        tenseSelectionDiv.classList.remove('hidden');
-        selectionOverlay.style.display = 'flex'; // Mostrar overlay
+    // Reiniciar el juego
+    restartButton.addEventListener('click', () => {
+        restablecerSeleccionInicial();
     });
+
+    if (quickRestartButton) {
+        quickRestartButton.addEventListener('click', () => {
+            if (!selectedMode || !selectedDifficulty || !selectedVerbType || !selectedTense) {
+                restablecerSeleccionInicial();
+                return;
+            }
+
+            const repeatSameSettings = window.confirm(
+                '¿Quieres repetir con los mismos ajustes?\nDo you want to repeat with the same settings?'
+            );
+
+            if (repeatSameSettings) {
+                reiniciarPartidaConMismosAjustes();
+            } else {
+                restablecerSeleccionInicial();
+            }
+        });
+    }
     
     // --- 10. INICIAR LA APLICACIÓN ---
     main();
