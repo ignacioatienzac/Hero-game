@@ -29,6 +29,7 @@
                     <h1 class="selection-title">Choose verb type</h1>
                     <div class="selection-buttons">
                         <button data-type="regular" class="btn btn-type">Regular Verbs</button>
+                        <button data-type="irregular" class="btn btn-type">Irregular Verbs</button>
                         <button data-type="regular-irregular" class="btn btn-type">Regular and Irregular Verbs</button>
                     </div>
                 </div>
@@ -40,6 +41,7 @@
                         <button data-mode="choice" class="btn btn-mode">Choice Mode</button>
                         <button data-mode="write" class="btn btn-mode">Write Mode</button>
                     </div>
+                    <p id="mode-restriction-message" class="mode-restriction-message"></p>
                 </div>
 
                 <!-- Paso 4: Elegir Dificultad -->
@@ -82,6 +84,36 @@
         <div id="minigame-container">
             <h2 class="minigame-title">¡El poder de los verbos! / The power of verbs!</h2>
             <p>Conjuga los verbos para aumentar tu poder de ataque / conjugate verbs to increase your attacking power.</p>
+            <div class="write-mode-instructions">
+                <p>En Write Mode puedes usar estas teclas para añadir acentos rápidamente:</p>
+                <div class="key-instructions">
+                    <span class="key-equation">
+                        <span class="keycap">1</span>
+                        <span class="key-symbol">=</span>
+                        <span class="keycap">á</span>
+                    </span>
+                    <span class="key-equation">
+                        <span class="keycap">2</span>
+                        <span class="key-symbol">=</span>
+                        <span class="keycap">é</span>
+                    </span>
+                    <span class="key-equation">
+                        <span class="keycap">3</span>
+                        <span class="key-symbol">=</span>
+                        <span class="keycap">í</span>
+                    </span>
+                    <span class="key-equation">
+                        <span class="keycap">4</span>
+                        <span class="key-symbol">=</span>
+                        <span class="keycap">ó</span>
+                    </span>
+                    <span class="key-equation">
+                        <span class="keycap">5</span>
+                        <span class="key-symbol">=</span>
+                        <span class="keycap">ú</span>
+                    </span>
+                </div>
+            </div>
 
             <div id="write-mode-container" class="minigame-mode">
                 <!-- Pregunta del mini-juego -->
