@@ -78,8 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const PODER_ATAQUE_MINIMO = 1;
-    const MAX_VISUAL_POWER = 30;
-    const POWER_STAGE_INTERVAL = 5;
     const CHOICE_MODE_VERBS = ['hablar', 'comer', 'vivir'];
     const CHOICE_MODE_GRID_SIZES = {
         facil: 6,
@@ -92,150 +90,99 @@ document.addEventListener('DOMContentLoaded', () => {
         dificil: 5
     };
 
-    const projectileVisualStyles = [
+    const ATTACK_VISUAL_TIERS = [
         {
-            width: 16,
-            height: 10,
-            gradientStops: [
-                [0, '#facc15'],
-                [1, '#f97316']
-            ],
-            borderColor: '#fde68a',
-            shadowColor: 'rgba(250, 204, 21, 0.45)',
-            shadowBlur: 8,
-            trailColor: 'rgba(249, 115, 22, 0.35)'
+            min: PODER_ATAQUE_MINIMO,
+            max: 5,
+            projectilePath: 'images/proyectil-1.png',
+            auraPath: null
         },
         {
-            width: 18,
-            height: 12,
-            gradientStops: [
-                [0, '#fbbf24'],
-                [0.5, '#fb923c'],
-                [1, '#ea580c']
-            ],
-            borderColor: '#fde047',
-            shadowColor: 'rgba(251, 191, 36, 0.5)',
-            shadowBlur: 10,
-            trailColor: 'rgba(251, 146, 60, 0.4)'
+            min: 6,
+            max: 10,
+            projectilePath: 'images/proyectil-2.png',
+            auraPath: 'images/aura-1.png'
         },
         {
-            width: 20,
-            height: 12,
-            gradientStops: [
-                [0, '#fdba74'],
-                [0.5, '#f97316'],
-                [1, '#ea580c']
-            ],
-            borderColor: '#f97316',
-            shadowColor: 'rgba(251, 146, 60, 0.55)',
-            shadowBlur: 12,
-            trailColor: 'rgba(234, 88, 12, 0.45)'
+            min: 11,
+            max: 20,
+            projectilePath: 'images/proyectil-3.png',
+            auraPath: 'images/aura-2.png'
         },
         {
-            width: 22,
-            height: 14,
-            gradientStops: [
-                [0, '#fef08a'],
-                [0.4, '#fbbf24'],
-                [1, '#ea580c']
-            ],
-            borderColor: '#facc15',
-            shadowColor: 'rgba(250, 204, 21, 0.6)',
-            shadowBlur: 14,
-            trailColor: 'rgba(251, 191, 36, 0.5)'
+            min: 21,
+            max: 30,
+            projectilePath: 'images/proyectil-4.png',
+            auraPath: 'images/aura-3.png'
         },
         {
-            width: 24,
-            height: 16,
-            gradientStops: [
-                [0, '#fef3c7'],
-                [0.3, '#facc15'],
-                [0.7, '#f97316'],
-                [1, '#ea580c']
-            ],
-            borderColor: '#f59e0b',
-            shadowColor: 'rgba(252, 211, 77, 0.7)',
-            shadowBlur: 16,
-            trailColor: 'rgba(253, 230, 138, 0.5)'
+            min: 31,
+            max: 50,
+            projectilePath: 'images/proyectil-5.png',
+            auraPath: 'images/aura-4.png'
         },
         {
-            width: 26,
-            height: 18,
-            gradientStops: [
-                [0, '#fff7ed'],
-                [0.25, '#fde68a'],
-                [0.6, '#facc15'],
-                [1, '#f97316']
-            ],
-            borderColor: '#fde68a',
-            shadowColor: 'rgba(253, 224, 71, 0.75)',
-            shadowBlur: 18,
-            trailColor: 'rgba(255, 247, 237, 0.55)'
+            min: 51,
+            max: Infinity,
+            projectilePath: 'images/proyectil-6.png',
+            auraPath: 'images/aura-5.png'
         }
     ];
 
-    const heroAuraStyles = [
-        {
-            innerColor: 'rgba(250, 204, 21, 0.45)',
-            outerColor: 'rgba(249, 115, 22, 0.15)',
-            alpha: 0.6,
-            radiusMultiplierX: 0.7,
-            radiusMultiplierY: 1.1
-        },
-        {
-            innerColor: 'rgba(250, 204, 21, 0.55)',
-            outerColor: 'rgba(249, 115, 22, 0.2)',
-            alpha: 0.65,
-            radiusMultiplierX: 0.75,
-            radiusMultiplierY: 1.2
-        },
-        {
-            innerColor: 'rgba(253, 224, 71, 0.6)',
-            outerColor: 'rgba(249, 115, 22, 0.25)',
-            alpha: 0.7,
-            radiusMultiplierX: 0.8,
-            radiusMultiplierY: 1.25
-        },
-        {
-            innerColor: 'rgba(253, 230, 138, 0.65)',
-            outerColor: 'rgba(249, 115, 22, 0.3)',
-            alpha: 0.75,
-            radiusMultiplierX: 0.9,
-            radiusMultiplierY: 1.3
-        },
-        {
-            innerColor: 'rgba(254, 249, 195, 0.7)',
-            outerColor: 'rgba(249, 115, 22, 0.35)',
-            alpha: 0.8,
-            radiusMultiplierX: 1,
-            radiusMultiplierY: 1.35
-        },
-        {
-            innerColor: 'rgba(255, 247, 237, 0.75)',
-            outerColor: 'rgba(255, 159, 64, 0.45)',
-            alpha: 0.85,
-            radiusMultiplierX: 1.1,
-            radiusMultiplierY: 1.4
+    function obtenerTierVisual(poder) {
+        const poderNormalizado = Math.max(PODER_ATAQUE_MINIMO, poder);
+        for (let i = 0; i < ATTACK_VISUAL_TIERS.length; i++) {
+            const tier = ATTACK_VISUAL_TIERS[i];
+            const min = tier.min ?? PODER_ATAQUE_MINIMO;
+            const max = tier.max ?? Infinity;
+            if (poderNormalizado >= min && poderNormalizado <= max) {
+                return { tier, index: i };
+            }
         }
-    ];
+        const ultimoIndice = ATTACK_VISUAL_TIERS.length - 1;
+        return { tier: ATTACK_VISUAL_TIERS[ultimoIndice], index: ultimoIndice };
+    }
 
     function obtenerEtapaVisual(poder) {
-        const poderNormalizado = Math.max(PODER_ATAQUE_MINIMO, Math.min(MAX_VISUAL_POWER, poder));
-        return Math.min(
-            projectileVisualStyles.length - 1,
-            Math.floor((poderNormalizado - 1) / POWER_STAGE_INTERVAL)
-        );
+        return obtenerTierVisual(poder).index;
     }
 
-    function obtenerEstiloAtaque(poder) {
-        const etapa = obtenerEtapaVisual(poder);
-        const estilo = projectileVisualStyles[etapa] || projectileVisualStyles[0];
-        return { ...estilo, etapa };
+    function obtenerSpriteAura(poder) {
+        const { tier } = obtenerTierVisual(poder);
+        if (!tier.auraPath) {
+            return null;
+        }
+        return sprites.auras[tier.auraPath] || null;
     }
 
-    function obtenerEstiloAura(poder) {
-        const etapa = obtenerEtapaVisual(poder);
-        return heroAuraStyles[etapa] || heroAuraStyles[heroAuraStyles.length - 1];
+    function obtenerConfiguracionProyectil(poder) {
+        const { tier, index } = obtenerTierVisual(poder);
+        const sprite = tier.projectilePath ? sprites.proyectiles[tier.projectilePath] || null : null;
+
+        let width = 24;
+        let height = 12;
+
+        if (sprite && sprite.width && sprite.height) {
+            const aspectRatio = sprite.width / sprite.height || 1;
+            const maxWidth = heroe
+                ? Math.max(36, Math.min(heroe.width * 1.4, 96))
+                : 60;
+            const maxHeight = heroe
+                ? Math.max(heroe.height * 0.35, 18)
+                : 24;
+
+            const widthFromHeight = maxHeight * aspectRatio;
+
+            if (widthFromHeight <= maxWidth) {
+                width = widthFromHeight;
+                height = maxHeight;
+            } else {
+                width = maxWidth;
+                height = maxWidth / aspectRatio;
+            }
+        }
+
+        return { sprite, width, height, etapa: index };
     }
 
     const enemyDefinitions = {
@@ -324,7 +271,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sprites = {
         heroe: null,
         castillo: null,
-        enemigos: {}
+        enemigos: {},
+        auras: {},
+        proyectiles: {}
     };
 
     let enemyProgressionState = [];
@@ -447,7 +396,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
         );
 
-        await Promise.all([...entradas, ...entradasEnemigos]);
+        const auraPaths = [...new Set(ATTACK_VISUAL_TIERS
+            .map(tier => tier.auraPath)
+            .filter(Boolean))];
+
+        const projectilePaths = [...new Set(ATTACK_VISUAL_TIERS
+            .map(tier => tier.projectilePath)
+            .filter(Boolean))];
+
+        const entradasAuras = auraPaths.map(ruta =>
+            cargarSprite(ruta)
+                .then(img => {
+                    sprites.auras[ruta] = img;
+                })
+                .catch(error => {
+                    console.error(error);
+                    sprites.auras[ruta] = null;
+                })
+        );
+
+        const entradasProyectiles = projectilePaths.map(ruta =>
+            cargarSprite(ruta)
+                .then(img => {
+                    sprites.proyectiles[ruta] = img;
+                })
+                .catch(error => {
+                    console.error(error);
+                    sprites.proyectiles[ruta] = null;
+                })
+        );
+
+        await Promise.all([
+            ...entradas,
+            ...entradasEnemigos,
+            ...entradasAuras,
+            ...entradasProyectiles
+        ]);
     }
 
     function cargarSprite(ruta) {
@@ -905,21 +889,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function crearProyectil() {
         const poderActual = Math.max(PODER_ATAQUE_MINIMO, poderAtaque);
-        const estiloVisual = obtenerEstiloAtaque(poderActual);
+        const configuracion = obtenerConfiguracionProyectil(poderActual);
 
         proyectiles.push({
             x: heroe.x + heroe.width,
-            y: heroe.y + heroe.height / 2 - estiloVisual.height / 2, // Centrado
-            width: estiloVisual.width,
-            height: estiloVisual.height,
-            gradientStops: estiloVisual.gradientStops,
-            borderColor: estiloVisual.borderColor,
-            shadowColor: estiloVisual.shadowColor,
-            shadowBlur: estiloVisual.shadowBlur,
-            trailColor: estiloVisual.trailColor,
+            y: heroe.y + heroe.height / 2 - configuracion.height / 2,
+            width: configuracion.width,
+            height: configuracion.height,
+            sprite: configuracion.sprite || null,
             velocidad: 8,
             poder: poderActual,
-            visualStage: estiloVisual.etapa
+            visualStage: configuracion.etapa
         });
     }
 
@@ -1072,29 +1052,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function dibujarAuraHeroe() {
         if (!heroe) return;
 
-        const aura = obtenerEstiloAura(poderAtaque);
+        const auraSprite = obtenerSpriteAura(poderAtaque);
+        if (!auraSprite) {
+            return;
+        }
+
         const centroX = heroe.x + heroe.width / 2;
         const centroY = heroe.y + heroe.height / 2;
-        const radioX = heroe.width * aura.radiusMultiplierX;
-        const radioY = heroe.height * aura.radiusMultiplierY;
+
+        const baseHeight = heroe.height * 2;
+        const aspectRatio = auraSprite.width / auraSprite.height || 1;
+        const auraHeight = baseHeight;
+        const auraWidth = baseHeight * aspectRatio;
+
+        const drawX = centroX - auraWidth / 2;
+        const drawY = centroY - auraHeight / 2;
 
         ctx.save();
-        const radioMaximo = Math.max(radioX, radioY);
-        const gradiente = ctx.createRadialGradient(
-            centroX,
-            centroY,
-            heroe.width * 0.2,
-            centroX,
-            centroY,
-            radioMaximo
-        );
-        gradiente.addColorStop(0, aura.innerColor);
-        gradiente.addColorStop(1, aura.outerColor);
-        ctx.globalAlpha = aura.alpha;
-        ctx.fillStyle = gradiente;
-        ctx.beginPath();
-        ctx.ellipse(centroX, centroY, radioX, radioY, 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = 0.85;
+        ctx.drawImage(auraSprite, drawX, drawY, auraWidth, auraHeight);
         ctx.restore();
     }
 
@@ -1142,50 +1118,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Dibujar proyectiles
         proyectiles.forEach(p => {
             ctx.save();
-
-            if (p.trailColor) {
-                ctx.globalAlpha = 0.7;
-                ctx.fillStyle = p.trailColor;
-                ctx.beginPath();
-                ctx.ellipse(
-                    p.x - p.width * 0.6,
-                    p.y + p.height / 2,
-                    Math.max(4, p.width * 0.55),
-                    Math.max(3, p.height * 0.8),
-                    0,
-                    0,
-                    Math.PI * 2
-                );
-                ctx.fill();
-                ctx.globalAlpha = 1;
+            if (p.sprite) {
+                ctx.drawImage(p.sprite, p.x, p.y, p.width, p.height);
+            } else {
+                ctx.fillStyle = '#f97316';
+                ctx.fillRect(p.x, p.y, p.width, p.height);
             }
-
-            if (p.shadowBlur) {
-                ctx.shadowColor = p.shadowColor || 'rgba(255, 215, 0, 0.5)';
-                ctx.shadowBlur = p.shadowBlur;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
-            }
-
-            let fillStyle = p.borderColor || '#FFD700';
-            if (p.gradientStops && p.gradientStops.length >= 2) {
-                const gradient = ctx.createLinearGradient(p.x, p.y, p.x + p.width, p.y + p.height);
-                p.gradientStops.forEach(stop => {
-                    const [offset, color] = stop;
-                    gradient.addColorStop(offset, color);
-                });
-                fillStyle = gradient;
-            }
-
-            ctx.fillStyle = fillStyle;
-            ctx.fillRect(p.x, p.y, p.width, p.height);
-
-            if (p.borderColor) {
-                ctx.strokeStyle = p.borderColor;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(p.x, p.y, p.width, p.height);
-            }
-
             ctx.restore();
         });
 
