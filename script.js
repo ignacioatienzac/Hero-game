@@ -93,6 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dificil: 4
     };
 
+    const WRITE_MODE_ACCENT_KEYS = {
+        '1': 'á',
+        '2': 'é',
+        '3': 'í',
+        '4': 'ó',
+        '5': 'ú'
+    };
+
     const ATTACK_VISUAL_TIERS = [
         {
             min: PODER_ATAQUE_MINIMO,
@@ -772,6 +780,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners del mini-juego
     submitButton.addEventListener('click', comprobarRespuesta);
+    answerInput.addEventListener('keydown', (e) => {
+        if (selectedMode !== 'write') {
+            return;
+        }
+
+        const accent = WRITE_MODE_ACCENT_KEYS[e.key];
+        if (!accent) {
+            return;
+        }
+
+        e.preventDefault();
+        const start = answerInput.selectionStart ?? answerInput.value.length;
+        const end = answerInput.selectionEnd ?? answerInput.value.length;
+        const before = answerInput.value.slice(0, start);
+        const after = answerInput.value.slice(end);
+        answerInput.value = `${before}${accent}${after}`;
+        const newPos = start + accent.length;
+        answerInput.setSelectionRange(newPos, newPos);
+    });
     answerInput.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
             comprobarRespuesta();
