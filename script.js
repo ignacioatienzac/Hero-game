@@ -701,7 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function manejarRespuestaIncorrecta() {
         poderAtaque = Math.max(PODER_ATAQUE_MINIMO, poderAtaque - 1);
-        messageEl.textContent = 'Incorrecto. -1 Poder de Ataque. Inténtalo de nuevo.';
+        messageEl.textContent = '¡Inténtalo de nuevo! / Try again!';
         messageEl.className = 'text-error';
         setTimeout(() => {
             if (!gameOver) messageEl.textContent = '';
