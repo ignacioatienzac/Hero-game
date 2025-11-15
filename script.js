@@ -36,8 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const difficultyButtons = document.querySelectorAll('.btn-difficulty');
     const modeSelectionDiv = document.getElementById('mode-selection');
     const modeButtons = document.querySelectorAll('.btn-mode');
+    const choiceModeButton = document.querySelector('.btn-mode[data-mode="choice"]');
+    const writeModeButton = document.querySelector('.btn-mode[data-mode="write"]');
     const startButton = document.getElementById('start-game-button');
     const selectionErrorEl = document.getElementById('selection-error');
+    const modeRestrictionMessage = document.getElementById('mode-restriction-message');
     const gameOverTitleEl = document.querySelector('.game-over-title');
     const gameOverSubtitleEl = document.querySelector('.game-over-subtitle');
 
@@ -453,6 +456,63 @@ document.addEventListener('DOMContentLoaded', () => {
         startButton.disabled = !(selectedVerbType && selectedDifficulty && selectedMode);
     }
 
+    function establecerModo(modo, { auto = false } = {}) {
+        selectedMode = modo;
+
+        modeButtons.forEach(btn => {
+            btn.classList.toggle('btn-selected', btn.dataset.mode === modo);
+        });
+
+        if (modo) {
+            difficultySelectionDiv.classList.remove('hidden');
+        } else {
+            difficultySelectionDiv.classList.add('hidden');
+        }
+
+        if (!modo) {
+            selectedDifficulty = null;
+            difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
+        }
+
+        if (!auto) {
+            selectionErrorEl.textContent = '';
+        }
+
+        actualizarEstadoBotonInicio();
+    }
+
+    function actualizarDisponibilidadModos() {
+        const requiereSoloEscritura = selectedVerbType === 'irregular' || selectedVerbType === 'regular-irregular';
+
+        selectionErrorEl.textContent = '';
+
+        if (choiceModeButton) {
+            choiceModeButton.disabled = !!requiereSoloEscritura;
+            if (requiereSoloEscritura) {
+                choiceModeButton.classList.remove('btn-selected');
+                choiceModeButton.setAttribute('aria-disabled', 'true');
+            } else {
+                choiceModeButton.removeAttribute('aria-disabled');
+            }
+        }
+
+        if (writeModeButton) {
+            writeModeButton.disabled = false;
+        }
+
+        if (modeRestrictionMessage) {
+            modeRestrictionMessage.textContent = requiereSoloEscritura
+                ? 'Write Mode is required for irregular verbs / El modo escritura es obligatorio con verbos irregulares.'
+                : '';
+        }
+
+        if (requiereSoloEscritura) {
+            establecerModo('write', { auto: true });
+        } else {
+            establecerModo(null, { auto: true });
+        }
+    }
+
     function setupSelectionListeners() {
         // Listeners para botones de TIEMPO
         tenseButtons.forEach(button => {
@@ -471,6 +531,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 typeSelectionDiv.classList.remove('hidden');
                 modeSelectionDiv.classList.add('hidden');
                 difficultySelectionDiv.classList.add('hidden');
+                if (choiceModeButton) {
+                    choiceModeButton.disabled = false;
+                    choiceModeButton.removeAttribute('aria-disabled');
+                }
+                if (writeModeButton) {
+                    writeModeButton.disabled = false;
+                }
+                if (modeRestrictionMessage) {
+                    modeRestrictionMessage.textContent = '';
+                }
                 selectionErrorEl.textContent = '';
                 actualizarEstadoBotonInicio();
             });
@@ -485,25 +555,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.classList.add('btn-selected');
                 selectedMode = null;
                 selectedDifficulty = null;
-                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
                 modeSelectionDiv.classList.remove('hidden');
-                difficultySelectionDiv.classList.add('hidden');
                 selectionErrorEl.textContent = ''; // Limpiar error
-                actualizarEstadoBotonInicio();
+                actualizarDisponibilidadModos();
             });
         });
 
         modeButtons.forEach(button => {
             button.addEventListener('click', () => {
-                selectedMode = button.dataset.mode;
-                modeButtons.forEach(btn => btn.classList.remove('btn-selected'));
-                button.classList.add('btn-selected');
+                if (button.disabled) {
+                    return;
+                }
                 selectedDifficulty = null;
                 difficultyButtons.forEach(btn => btn.classList.remove('btn-selected'));
-                difficultySelectionDiv.classList.remove('hidden');
-                selectionErrorEl.textContent = '';
-                actualizarEstadoBotonInicio();
+                establecerModo(button.dataset.mode);
             });
         });
 
@@ -533,6 +599,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (selectedVerbType === 'regular') {
                 verbos = verbos.filter(v => v.regular === true);
+            } else if (selectedVerbType === 'irregular') {
+                verbos = verbos.filter(v => v.regular === false);
             }
             // Si es 'regular-irregular', no se necesita más filtro
 
@@ -1207,6 +1275,16 @@ document.addEventListener('DOMContentLoaded', () => {
         difficultySelectionDiv.classList.add('hidden');
         modeSelectionDiv.classList.add('hidden');
         startButton.disabled = true;
+        if (choiceModeButton) {
+            choiceModeButton.disabled = false;
+            choiceModeButton.removeAttribute('aria-disabled');
+        }
+        if (writeModeButton) {
+            writeModeButton.disabled = false;
+        }
+        if (modeRestrictionMessage) {
+            modeRestrictionMessage.textContent = '';
+        }
         actualizarEstadoBotonInicio();
         selectionErrorEl.textContent = '';
         messageEl.textContent = '';

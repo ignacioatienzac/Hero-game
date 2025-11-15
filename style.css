@@ -155,6 +155,14 @@ html, body {
     color: #1f2937; /* gray-800 */
 }
 
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #d1d5db;
+    color: #6b7280;
+    box-shadow: none;
+}
+
 .btn-tense:hover, .btn-type:hover, .btn-difficulty:hover, .btn-mode:hover {
     background-color: #3b82f6; /* blue-500 */
     color: white;
@@ -191,11 +199,66 @@ html, body {
     height: 1.25rem; /* 20px */
 }
 
+.mode-restriction-message {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: #1f2937;
+    text-align: center;
+    min-height: 1.25rem;
+}
+
 /* --- Mini-Juego --- */
 .minigame-title {
     font-size: 1.5rem; /* 24px */
     font-weight: 700;
     color: #1f2937;
+}
+
+.write-mode-instructions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 640px;
+}
+
+.write-mode-instructions p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.key-instructions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.key-equation {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.keycap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.35rem;
+    border: 1px solid #cbd5f5;
+    background: linear-gradient(145deg, #ffffff 0%, #e2e8f0 100%);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+    font-family: 'Inter', sans-serif;
+}
+
+.key-symbol {
+    font-weight: 700;
+    color: #4b5563;
 }
 
 #minigame-prompt {
